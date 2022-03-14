@@ -1,6 +1,7 @@
 package main
 
 import (
+	"corona-information-service/handler"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +16,7 @@ func main() {
 	}
 
 	// Set up handler endpoints
-	//TODO Configure handler endpoints
+	http.HandleFunc(handler.DEFAULT_PATH, handler.DefaultHandler)
 
 	// Start server
 	log.Println("Starting server on port " + port + " ...")
