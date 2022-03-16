@@ -1,7 +1,11 @@
 package functions
 
 import (
+	"corona-information-service/model"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -40,7 +44,22 @@ func IssueGraphQLRequest(url string, jsonQuery []byte) *http.Response {
 	if err != nil {
 		fmt.Errorf("Error in response:", err.Error())
 	}
-	defer res.Body.Close()
 
 	return res
+}
+
+// UnmarshalResponse Method for unmarshalling GraphQL response into a struct */
+func UnmarshalResponse(res *http.Response) model.Response {
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var response model.Response
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		log.Fatal(err)
+	}
+
+	return response
 }

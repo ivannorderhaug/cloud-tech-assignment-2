@@ -29,5 +29,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonQuery, _ := json.Marshal(model.GraphQLRequest{Query: query})
 
-	_ = functions.IssueGraphQLRequest(url, jsonQuery)
+	res := functions.IssueGraphQLRequest(url, jsonQuery)
+	_ = functions.UnmarshalResponse(res)
+
 }
