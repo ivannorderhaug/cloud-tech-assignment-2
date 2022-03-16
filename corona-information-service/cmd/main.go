@@ -17,7 +17,6 @@ func main() {
 
 	// Set up handler endpoints
 	http.HandleFunc(handler.DEFAULT_PATH, handler.DefaultHandler)
-	http.HandleFunc(handler.CASE_PATH, handler.CaseHandler)
 
 	// Start server
 	log.Println("Starting server on port " + port + " ...")
