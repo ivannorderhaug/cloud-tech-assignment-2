@@ -63,3 +63,19 @@ func UnmarshalResponse(res *http.Response) model.Response {
 
 	return response
 }
+
+// EncodeCaseInformation */
+func EncodeCaseInformation(w http.ResponseWriter, r model.Case) {
+	// Write content type header
+	w.Header().Add("content-type", "application/json")
+
+	// Instantiate encoder
+	encoder := json.NewEncoder(w)
+
+	//Encodes response
+	err := encoder.Encode(r)
+	if err != nil {
+		http.Error(w, "Error during encoding", http.StatusInternalServerError)
+		return
+	}
+}

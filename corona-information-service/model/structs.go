@@ -23,3 +23,12 @@ type Country struct {
 type Response struct {
 	Data Country `json:"data"`
 }
+
+type Case struct {
+	Country        string  `json:"country"`
+	Date           string  `json:"date"`
+	ConfirmedCases int     `json:"confirmed"`
+	Recovered      int     `json:"recovered"`
+	Deaths         int     `json:"deaths"`
+	GrowthRate     float64 `json:"growth_rate"`
+}
