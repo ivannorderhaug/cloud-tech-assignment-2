@@ -18,6 +18,12 @@ func PathSplitter(path string, length int) ([]string, bool, string) {
 	parts := strings.Split(path, "/")
 	//Gets the length of the basePath
 	basePathLength := len(strings.Split("/corona/v1/", "/"))
+
+	if len(parts) == basePathLength {
+		//Returns empty slice with an error message as the path didn't match the required format
+		return []string{}, false, "Missing search parameter"
+	}
+
 	//Compares length of parts slice with basePath length+length param
 	if len(parts) != basePathLength+length {
 		//Returns empty slice with an error message as the path didn't match the required format
