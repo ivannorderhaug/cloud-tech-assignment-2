@@ -4,12 +4,13 @@ import (
 	"corona-information-service/functions"
 	"corona-information-service/model"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 )
 
-// StringencyHandler */
-func StringencyHandler(w http.ResponseWriter, r *http.Request) {
+// PolicyHandler */
+func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
 		return
@@ -26,6 +27,10 @@ func StringencyHandler(w http.ResponseWriter, r *http.Request) {
 	if len(s) != 3 {
 		http.Error(w, "Invalid alpha-3 country code. Please try again. ", http.StatusBadRequest)
 		return
+	}
+	date := r.URL.Query().Get("scope")
+	if len(date) == 0 {
+		fmt.Println("No date")
 	}
 
 }
