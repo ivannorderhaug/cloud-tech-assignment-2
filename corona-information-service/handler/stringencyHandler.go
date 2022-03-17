@@ -2,6 +2,8 @@ package handler
 
 import (
 	"corona-information-service/functions"
+	"corona-information-service/model"
+	"encoding/json"
 	"net/http"
 	"strings"
 )
@@ -48,4 +50,16 @@ func IssueRequest(url string) (*http.Response, error) {
 	}
 
 	return res, nil
+}
+
+// DecodeResponse */
+func DecodeResponse(res *http.Response) (model.CovidPolicyWrapper, error) {
+	var w model.CovidPolicyWrapper
+
+	dec := json.NewDecoder(res.Body)
+	if err := dec.Decode(&w); err != nil {
+		return model.CovidPolicyWrapper{}, err
+	}
+
+	return w, nil
 }
