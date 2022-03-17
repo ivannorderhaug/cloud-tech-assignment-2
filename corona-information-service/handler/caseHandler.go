@@ -5,6 +5,7 @@ import (
 	"corona-information-service/model"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -42,8 +43,8 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	res := functions.IssueGraphQLRequest(url, jsonQuery)
-	mp := functions.UnmarshalResponse(res)
+	res := IssueGraphQLRequest(url, jsonQuery)
+	mp := UnmarshalResponse(res)
 
 	if len(mp.Data.Country.Name) == 0 {
 		http.Error(w, "Could not find a country with that name", http.StatusNotFound)
@@ -59,6 +60,60 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		GrowthRate:     mp.Data.Country.Info.GrowthRate,
 	}
 
-	functions.EncodeCaseInformation(w, c)
+	EncodeCaseInformation(w, c)
 
+}
+
+//IssueGraphQLRequest Issues a http request of method POST. Returns response */
+func IssueGraphQLRequest(url string, jsonQuery []byte) *http.Response {
+	// Create new request
+	r, err := http.NewRequest(http.MethodPost, url, strings.NewReader(string(jsonQuery)))
+	if err != nil {
+		fmt.Errorf("Error in creating request:", err.Error())
+	}
+	// Setting content type -> effect depends on the service provider
+	r.Header.Add("content-type", "application/json")
+
+	// Instantiate the client
+	client := &http.Client{}
+
+	// Issue request
+	res, err := client.Do(r)
+	if err != nil {
+		fmt.Errorf("Error in response:", err.Error())
+	}
+
+	return res
+}
+
+// UnmarshalResponse Method for unmarshalling GraphQL response into a struct */
+func UnmarshalResponse(res *http.Response) model.Response {
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	var response model.Response
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		log.Fatal(err)
+	}
+
+	return response
+}
+
+// EncodeCaseInformation */
+func EncodeCaseInformation(w http.ResponseWriter, r model.Case) {
+	// Write content type header
+	w.Header().Add("content-type", "application/json")
+
+	// Instantiate encoder
+	encoder := json.NewEncoder(w)
+
+	//Encodes response
+	err := encoder.Encode(r)
+	if err != nil {
+		http.Error(w, "Error during encoding", http.StatusInternalServerError)
+		return
+	}
 }

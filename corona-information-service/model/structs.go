@@ -33,3 +33,14 @@ type Case struct {
 	Deaths         int     `json:"deaths"`
 	GrowthRate     float64 `json:"growth_rate"`
 }
+
+type StringencyData struct {
+	Alpha3           string  `json:"country_code"`
+	Scope            string  `json:"date_value"`
+	Stringency       float64 `json:"stringency"`
+	StringencyActual float64 `json:"stringency_actual,omitempty"`
+}
+
+type CovidPolicyWrapper struct {
+	CovidPolicy StringencyData `json:"stringencyData"`
+}

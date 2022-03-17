@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// StringencyHandler */
 func StringencyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
@@ -25,4 +26,26 @@ func StringencyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+// IssueRequest */
+func IssueRequest(url string) (*http.Response, error) {
+	// Create new request
+	r, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return &http.Response{}, err
+	}
+	// Setting content type -> effect depends on the service provider
+	r.Header.Add("content-type", "application/json")
+
+	// Instantiate the client
+	client := &http.Client{}
+
+	// Issue request
+	res, err := client.Do(r)
+	if err != nil {
+		return &http.Response{}, err
+	}
+
+	return res, nil
 }
