@@ -3,6 +3,7 @@ package handler
 import (
 	"corona-information-service/model"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -21,28 +22,28 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	covidGraphql, err := getStatus("https://github.com/rlindskog/covid19-graphql")
+	casesApi, err := getStatus("https://github.com/rlindskog/covid19-graphql")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	covidTracker, err := getStatus("https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/nor/2022-02-04")
+	policyApi, err := getStatus("https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/nor/2022-02-04")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	restCountries, err := getStatus("https://restcountries.com/")
+	restCountriesApi, err := getStatus("https://restcountries.com/")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
 	status := model.Status{
-		CasesApi:      covidGraphql,
-		PolicyApi:     covidTracker,
-		RestCountries: restCountries,
+		CasesApi:      fmt.Sprintf("%d "+http.StatusText(casesApi), casesApi),
+		PolicyApi:     fmt.Sprintf("%d "+http.StatusText(policyApi), policyApi),
+		RestCountries: fmt.Sprintf("%d "+http.StatusText(restCountriesApi), restCountriesApi),
 		Version:       VERSION,
 		Uptime:        int(getUptime().Seconds()),
 	}
