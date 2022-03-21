@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -70,4 +71,11 @@ func GetCountryByAlphaCode(alpha3 string) interface{} {
 
 	//Returns an interface by going one layer into the country name interface and picking out the common name
 	return c.Name.(map[string]interface{})["common"]
+}
+
+//IsValidDate Uses Regular Expressions to validate if string matches required format */
+func IsValidDate(date string) bool {
+	//YYYY-mm-dd
+	pattern := regexp.MustCompile("([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))")
+	return pattern.MatchString(date)
 }
