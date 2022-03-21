@@ -4,9 +4,9 @@ import (
 	"corona-information-service/functions"
 	"corona-information-service/model"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // PolicyHandler */
@@ -22,21 +22,77 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Country name or isocode.
+	//Country name or alpha3 code.
 	s := strings.ToUpper(path[0])
 	if len(s) != 3 {
 		http.Error(w, "Invalid alpha-3 country code. Please try again. ", http.StatusBadRequest)
 		return
 	}
+	//Checks if date param in query exists, if not then use todays date.
 	date := r.URL.Query().Get("scope")
 	if len(date) == 0 {
-		fmt.Println("No date")
+		date = time.Now().Format("2006-01-02")
 	}
 
+	//Validates if date input is correctly formatted.
+	if !functions.IsValidDate(date) {
+		http.Error(w, "Date parameter is wrongly formatted, please see if it matches the correct format. (YYYY-MM-dd)", http.StatusBadRequest)
+		return
+	}
+
+	//Issues request, decodes it and returns a struct
+	covidPolicy, err := getCovidPolicy(s, date)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	//Encodes struct
+	encodePolicyInformation(w, covidPolicy)
 }
 
-// IssueRequest */
-func IssueRequest(url string) (*http.Response, error) {
+func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
+	url := "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/" + alpha3 + "/" + date
+	res, err := issueRequest(url) //returns response
+	if err != nil {
+		return model.Policy{}, err
+	}
+
+	w, err := decodeResponse(res) //returns decoded wrapper for stringency data
+	if err != nil {
+		return model.Policy{}, err
+	}
+
+	stringency := w.StringencyData.Stringency
+
+	if w.StringencyData.StringencyActual != 0 {
+		stringency = w.StringencyData.StringencyActual
+	}
+
+	//If there is no stringency data, the value will be set to 0 by default.
+	//This changes that to -1 as to satisfy the requirements
+	if stringency == 0 {
+		stringency = -1
+	}
+
+	if len(w.PolicyActions) > 1 {
+		return model.Policy{
+			CountryCode: alpha3,
+			Scope:       date,
+			Stringency:  stringency,
+			Policies:    len(w.PolicyActions),
+		}, nil
+	} else {
+		return model.Policy{
+			CountryCode: alpha3,
+			Scope:       date,
+			Stringency:  stringency,
+			Policies:    0,
+		}, nil
+	}
+}
+
+// issueRequest */
+func issueRequest(url string) (*http.Response, error) {
 	// Create new request
 	r, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -57,8 +113,8 @@ func IssueRequest(url string) (*http.Response, error) {
 	return res, nil
 }
 
-// DecodeResponse */
-func DecodeResponse(res *http.Response) (model.CovidPolicyData, error) {
+// decodeResponse */
+func decodeResponse(res *http.Response) (model.CovidPolicyData, error) {
 	var w model.CovidPolicyData
 
 	dec := json.NewDecoder(res.Body)
@@ -67,4 +123,20 @@ func DecodeResponse(res *http.Response) (model.CovidPolicyData, error) {
 	}
 
 	return w, nil
+}
+
+// encodePolicyInformation */
+func encodePolicyInformation(w http.ResponseWriter, r model.Policy) {
+	// Write content type header
+	w.Header().Add("content-type", "application/json")
+
+	// Instantiate encoder
+	encoder := json.NewEncoder(w)
+
+	//Encodes response
+	err := encoder.Encode(r)
+	if err != nil {
+		http.Error(w, "Error during encoding", http.StatusInternalServerError)
+		return
+	}
 }

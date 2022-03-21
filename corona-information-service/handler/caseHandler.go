@@ -43,8 +43,8 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	res := IssueGraphQLRequest(url, jsonQuery)
-	mp := UnmarshalResponse(res)
+	res := issueGraphQLRequest(url, jsonQuery)
+	mp := unmarshalResponse(res)
 
 	if len(mp.Data.Country.Name) == 0 {
 		http.Error(w, "Could not find a country with that name", http.StatusNotFound)
@@ -60,12 +60,12 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		GrowthRate:     mp.Data.Country.Info.GrowthRate,
 	}
 
-	EncodeCaseInformation(w, c)
+	encodeCaseInformation(w, c)
 
 }
 
-//IssueGraphQLRequest Issues a http request of method POST. Returns response */
-func IssueGraphQLRequest(url string, jsonQuery []byte) *http.Response {
+//issueGraphQLRequest Issues a http request of method POST. Returns response */
+func issueGraphQLRequest(url string, jsonQuery []byte) *http.Response {
 	// Create new request
 	r, err := http.NewRequest(http.MethodPost, url, strings.NewReader(string(jsonQuery)))
 	if err != nil {
@@ -86,8 +86,8 @@ func IssueGraphQLRequest(url string, jsonQuery []byte) *http.Response {
 	return res
 }
 
-// UnmarshalResponse Method for unmarshalling GraphQL response into a struct */
-func UnmarshalResponse(res *http.Response) model.Response {
+// unmarshalResponse Method for unmarshalling GraphQL response into a struct */
+func unmarshalResponse(res *http.Response) model.Response {
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		log.Fatalln(err)
@@ -102,8 +102,8 @@ func UnmarshalResponse(res *http.Response) model.Response {
 	return response
 }
 
-// EncodeCaseInformation */
-func EncodeCaseInformation(w http.ResponseWriter, r model.Case) {
+// encodeCaseInformation */
+func encodeCaseInformation(w http.ResponseWriter, r model.Case) {
 	// Write content type header
 	w.Header().Add("content-type", "application/json")
 
