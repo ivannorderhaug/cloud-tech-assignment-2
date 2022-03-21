@@ -23,21 +23,28 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 
 	covidGraphql, err := getStatus("https://github.com/rlindskog/covid19-graphql")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
 	covidTracker, err := getStatus("https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/nor/2022-02-04")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	restCountries, err := getStatus("https://restcountries.com/")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
 	status := model.Status{
-		CasesApi:  covidGraphql,
-		PolicyApi: covidTracker,
-		Version:   VERSION,
-		Uptime:    int(getUptime().Seconds()),
+		CasesApi:      covidGraphql,
+		PolicyApi:     covidTracker,
+		RestCountries: restCountries,
+		Version:       VERSION,
+		Uptime:        int(getUptime().Seconds()),
 	}
 
 	encodeStatusInformation(w, status)
