@@ -35,12 +35,18 @@ type Case struct {
 }
 
 type StringencyData struct {
-	Alpha3           string  `json:"country_code"`
-	Scope            string  `json:"date_value"`
 	Stringency       float64 `json:"stringency"`
 	StringencyActual float64 `json:"stringency_actual,omitempty"`
 }
 
-type CovidPolicyWrapper struct {
-	CovidPolicy StringencyData `json:"stringencyData"`
+type CovidPolicyData struct {
+	StringencyData StringencyData `json:"stringencyData"`
+	PolicyActions  []interface{}  `json:"policyActions"`
+}
+
+type Policy struct {
+	CountryCode string      `json:"country_code"`
+	Scope       string      `json:"scope"`
+	Stringency  float64     `json:"stringency,omitempty"`
+	Policies    interface{} `json:"policies,omitempty"`
 }

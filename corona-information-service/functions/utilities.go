@@ -8,13 +8,15 @@ import (
 	"strings"
 )
 
-//PathSplitter */
+//PathSplitter
+//Example of usage: /corona/v1/cases/norway has a length of 5, if it matches basePathLength(which is 4)+length param(which is 1 in this case).
+//It'll return a slice containing only 1 element which is the search param (norway)*/
 func PathSplitter(path string, length int) ([]string, bool, string) {
-	//Trims away last "/"
+	//Trims away "/" at the end of path. Only if there is one tjere
 	path = strings.TrimSuffix(path, "/")
 	//Splits the path into a slice, separating each part by "/"
 	parts := strings.Split(path, "/")
-	//Gets the length of the basePath
+	//Gets the length of the basePath. Length will be 4.
 	basePathLength := len(strings.Split("/corona/v1/", "/"))
 
 	if len(parts) == basePathLength {
@@ -33,8 +35,8 @@ func PathSplitter(path string, length int) ([]string, bool, string) {
 // GetCountryByAlphaCode
 // Issues a http request of method GET to the RESTCountries API
 // Decodes the response and returns an interface
-func GetCountryByAlphaCode(isocode string) interface{} {
-	url := fmt.Sprintf("https://restcountries.com/v3.1/alpha/%s?fields=name", isocode)
+func GetCountryByAlphaCode(alpha3 string) interface{} {
+	url := fmt.Sprintf("https://restcountries.com/v3.1/alpha/%s?fields=name", alpha3)
 
 	// Create new request
 	r, err := http.NewRequest(http.MethodGet, url, nil)

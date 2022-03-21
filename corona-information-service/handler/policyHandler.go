@@ -58,12 +58,12 @@ func IssueRequest(url string) (*http.Response, error) {
 }
 
 // DecodeResponse */
-func DecodeResponse(res *http.Response) (model.CovidPolicyWrapper, error) {
-	var w model.CovidPolicyWrapper
+func DecodeResponse(res *http.Response) (model.CovidPolicyData, error) {
+	var w model.CovidPolicyData
 
 	dec := json.NewDecoder(res.Body)
 	if err := dec.Decode(&w); err != nil {
-		return model.CovidPolicyWrapper{}, err
+		return model.CovidPolicyData{}, err
 	}
 
 	return w, nil
