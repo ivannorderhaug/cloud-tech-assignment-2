@@ -19,6 +19,7 @@ func main() {
 	http.HandleFunc(handler.DEFAULT_PATH, handler.DefaultHandler)
 	http.HandleFunc(handler.CASE_PATH, handler.CaseHandler)
 	http.HandleFunc(handler.POLICY_PATH, handler.PolicyHandler)
+	http.HandleFunc(handler.STATUS_PATH, handler.StatusHandler)
 
 	// Start server
 	log.Println("Starting server on port " + port + " ...")
