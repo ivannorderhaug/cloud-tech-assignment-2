@@ -32,7 +32,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	s := strings.Title(strings.ToLower(path[0]))
 
 	if len(s) == 3 {
-		//Issues a RESTCountries api request if input is isocode.
+		//Issues a RESTCountries api request if input is alpha3.
 		//Returns the country name
 		s = fmt.Sprint(functions.GetCountryByAlphaCode(s))
 	}
@@ -61,7 +61,6 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	encodeCaseInformation(w, c)
-
 }
 
 //issueGraphQLRequest Issues a http request of method POST. Returns response */

@@ -50,3 +50,11 @@ type Policy struct {
 	Stringency  float64     `json:"stringency,omitempty"`
 	Policies    interface{} `json:"policies,omitempty"`
 }
+
+type Status struct {
+	CasesApi  int `json:"cases_api"`
+	PolicyApi int `json:"policy_api"`
+	//TODO Add webhooks
+	Version string `json:"version"`
+	Uptime  int    `json:"uptime"`
+}
