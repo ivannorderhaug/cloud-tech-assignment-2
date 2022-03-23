@@ -3,7 +3,6 @@ package handler
 import (
 	"corona-information-service/model"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -22,28 +21,28 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	casesApi, err := getStatus("https://github.com/rlindskog/covid19-graphql")
+	casesApi, err := getStatus(CASES_URL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	policyApi, err := getStatus("https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/nor/2022-02-04")
+	policyApi, err := getStatus(STRINGENCY_URL + "nor/" + "2022-02-04")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	restCountriesApi, err := getStatus("https://restcountries.com/")
+	restCountriesApi, err := getStatus(RESTCOUNTRIES_URL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
 	status := model.Status{
-		CasesApi:      fmt.Sprintf("%d "+http.StatusText(casesApi), casesApi),
-		PolicyApi:     fmt.Sprintf("%d "+http.StatusText(policyApi), policyApi),
-		RestCountries: fmt.Sprintf("%d "+http.StatusText(restCountriesApi), restCountriesApi),
+		CasesApi:      casesApi,
+		PolicyApi:     policyApi,
+		RestCountries: restCountriesApi,
 		Version:       VERSION,
 		Uptime:        int(getUptime().Seconds()),
 	}
@@ -53,11 +52,11 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 //getStatus Simple method to retrieve a status code from an external api
-func getStatus(api string) (int, error) {
+func getStatus(api string) (string, error) {
 	// Create new request
 	r, err := http.NewRequest(http.MethodHead, api, nil)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 	// Setting content type -> effect depends on the service provider
 	r.Header.Add("content-type", "application/json")
@@ -68,9 +67,9 @@ func getStatus(api string) (int, error) {
 	// Issue request
 	res, err := client.Do(r)
 	if err != nil {
-		return 0, err
+		return "", err
 	}
-	return res.StatusCode, nil
+	return res.Status, nil
 }
 
 // encodeStatusInformation */

@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"corona-information-service/functions"
 	"corona-information-service/model"
+	"corona-information-service/tools"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,10 +18,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// URL to invoke
-	url := "https://covid19-graphql.vercel.app/"
-
-	path, ok, msg := functions.PathSplitter(r.URL.Path, 1)
+	path, ok, msg := tools.PathSplitter(r.URL.Path, 1)
 	if !ok {
 		http.Error(w, msg, http.StatusNotFound)
 		return
@@ -34,7 +31,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	if len(s) == 3 {
 		//Issues a RESTCountries api request if input is alpha3.
 		//Returns the country name
-		s = fmt.Sprint(functions.GetCountryByAlphaCode(s))
+		s = fmt.Sprint(tools.GetCountryByAlphaCode(s))
 	}
 	query := fmt.Sprintf("query {\n  country(name: \"%s\") {\n    name\n    mostRecent {\n      date(format: \"yyyy-MM-dd\")\n      confirmed\n      recovered\n      deaths\n      growthRate\n    }\n  }\n}", s)
 
@@ -43,7 +40,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	res := issueGraphQLRequest(url, jsonQuery)
+	res := issueGraphQLRequest(CASES_URL, jsonQuery)
 	mp := unmarshalResponse(res)
 
 	if len(mp.Data.Country.Name) == 0 {
