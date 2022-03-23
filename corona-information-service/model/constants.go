@@ -12,3 +12,5 @@ const VERSION = "v1"
 const CASES_URL = "https://covid19-graphql.vercel.app/"
 const STRINGENCY_URL = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/"
 const RESTCOUNTRIES_URL = "https://restcountries.com/"
+
+const QUERY = "query {\n  country(name: \"%s\") {\n    name\n    mostRecent {\n      date(format: \"yyyy-MM-dd\")\n      confirmed\n      recovered\n      deaths\n      growthRate\n    }\n  }\n}"

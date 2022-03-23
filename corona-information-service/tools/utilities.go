@@ -86,3 +86,11 @@ func IssueRequest(method string, url string, body []byte) (*http.Response, error
 
 	return res, nil
 }
+
+// MakeURL Simple method to combine an url with either one or two parameters
+func MakeURL(url string, paramOne string, paramTwo string) string {
+	if len(paramTwo) != 0 {
+		return fmt.Sprintf("%s%s/%s", url, paramOne, paramTwo)
+	}
+	return fmt.Sprintf("%s%s", url, paramOne)
+}

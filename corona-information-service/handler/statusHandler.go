@@ -23,7 +23,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//This has to be done as the casesAPI only accepts POST
-	query, _ := json.Marshal(model.GraphQLRequest{Query: "query {\n  country(name: \"Norway\") {\n    name\n  }\n}"})
+	query, _ := json.Marshal(model.GraphQLRequest{Query: model.QUERY})
 	casesApi, err := tools.IssueRequest(http.MethodPost, model.CASES_URL, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)

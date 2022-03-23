@@ -51,7 +51,7 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
-	url := model.STRINGENCY_URL + alpha3 + "/" + date
+	url := tools.MakeURL(model.STRINGENCY_URL, alpha3, date)
 
 	res, err := tools.IssueRequest(http.MethodGet, url, nil) //returns response
 	if err != nil {

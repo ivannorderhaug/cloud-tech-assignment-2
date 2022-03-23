@@ -31,38 +31,40 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		//Returns the country name
 		country, _ := tools.GetCountryByAlphaCode(s)
 		s = fmt.Sprint(country)
+
+		//Formats query
+		query := fmt.Sprintf(model.QUERY, s)
+
+		jsonQuery, err := json.Marshal(model.GraphQLRequest{Query: query})
+		if err != nil {
+			http.Error(w, "Error during encoding", http.StatusInternalServerError)
+			return
+		}
+
+		res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
+
+		var tmpCase model.TmpCase
+		decode := tools.Decode(res, &tmpCase)
+		if decode != nil {
+			http.Error(w, "Error during decoding", http.StatusInternalServerError)
+			return
+		}
+
+		if len(tmpCase.Data.Country.Name) == 0 {
+			http.Error(w, "Could not find a country with that name", http.StatusNotFound)
+			return
+		}
+
+		info := tmpCase.Data.Country.MostRecent
+		c := model.Case{
+			Country:        tmpCase.Data.Country.Name,
+			Date:           info.Date,
+			ConfirmedCases: info.Confirmed,
+			Recovered:      info.Recovered,
+			Deaths:         info.Deaths,
+			GrowthRate:     info.GrowthRate,
+		}
+
+		tools.Encode(w, c)
 	}
-	query := fmt.Sprintf("query {\n  country(name: \"%s\") {\n    name\n    mostRecent {\n      date(format: \"yyyy-MM-dd\")\n      confirmed\n      recovered\n      deaths\n      growthRate\n    }\n  }\n}", s)
-
-	jsonQuery, err := json.Marshal(model.GraphQLRequest{Query: query})
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
-	}
-
-	res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
-
-	var tmpCase model.TmpCase
-	decode := tools.Decode(res, &tmpCase)
-	if decode != nil {
-		http.Error(w, "Error during decoding", http.StatusInternalServerError)
-		return
-	}
-
-	if len(tmpCase.Data.Country.Name) == 0 {
-		http.Error(w, "Could not find a country with that name", http.StatusNotFound)
-		return
-	}
-
-	info := tmpCase.Data.Country.MostRecent
-	c := model.Case{
-		Country:        tmpCase.Data.Country.Name,
-		Date:           info.Date,
-		ConfirmedCases: info.Confirmed,
-		Recovered:      info.Recovered,
-		Deaths:         info.Deaths,
-		GrowthRate:     info.GrowthRate,
-	}
-
-	tools.Encode(w, c)
 }
