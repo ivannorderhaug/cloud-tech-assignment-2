@@ -11,4 +11,4 @@ const VERSION = "v1"
 //URL
 const CASES_URL = "https://covid19-graphql.vercel.app/"
 const STRINGENCY_URL = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/"
-const RESTCOUNTRIES_URL = "https://restcountries.com/v3.1/"
+const RESTCOUNTRIES_URL = "https://restcountries.com/"

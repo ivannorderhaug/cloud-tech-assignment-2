@@ -36,8 +36,7 @@ func PathSplitter(path string, length int) ([]string, bool, string) {
 // Issues a http request of method GET to the RESTCountries API
 // Decodes the response and returns an interface
 func GetCountryByAlphaCode(alpha3 string) (interface{}, error) {
-	url := fmt.Sprintf(model.RESTCOUNTRIES_URL+"alpha/%s?fields=name", alpha3)
-	fmt.Println(url)
+	url := fmt.Sprintf(model.RESTCOUNTRIES_URL+"v3.1/alpha/%s?fields=name", alpha3)
 	// Create new request
 	res, err := IssueRequest(http.MethodGet, url, nil)
 	if err != nil {
