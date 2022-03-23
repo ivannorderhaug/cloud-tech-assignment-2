@@ -58,12 +58,11 @@ func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
 		return model.Policy{}, err
 	}
 
-	var data model.CovidPolicyData
+	var data model.TmpPolicy
 
 	err2 := tools.Decode(res, &data)
 	if err2 != nil {
 		return model.Policy{}, err2
-
 	} //returns decoded wrapper for stringency and policy data
 
 	stringency := data.StringencyData.Stringency

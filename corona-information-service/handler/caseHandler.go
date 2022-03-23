@@ -42,21 +42,21 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
 
-	var mp model.Response
-	decode := tools.Decode(res, &mp)
+	var tmpCase model.TmpCase
+	decode := tools.Decode(res, &tmpCase)
 	if decode != nil {
 		http.Error(w, "Error during decoding", http.StatusInternalServerError)
 		return
 	}
 
-	if len(mp.Data.Country.Name) == 0 {
+	if len(tmpCase.Data.Country.Name) == 0 {
 		http.Error(w, "Could not find a country with that name", http.StatusNotFound)
 		return
 	}
 
-	info := mp.Data.Country.Info
+	info := tmpCase.Data.Country.MostRecent
 	c := model.Case{
-		Country:        mp.Data.Country.Name,
+		Country:        tmpCase.Data.Country.Name,
 		Date:           info.Date,
 		ConfirmedCases: info.Confirmed,
 		Recovered:      info.Recovered,
