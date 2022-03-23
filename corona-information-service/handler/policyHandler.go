@@ -78,19 +78,15 @@ func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
 		stringency = -1
 	}
 
+	p := 0
 	if len(data.PolicyActions) > 1 {
-		return model.Policy{
-			CountryCode: alpha3,
-			Scope:       date,
-			Stringency:  stringency,
-			Policies:    len(data.PolicyActions),
-		}, nil
-	} else {
-		return model.Policy{
-			CountryCode: alpha3,
-			Scope:       date,
-			Stringency:  stringency,
-			Policies:    0,
-		}, nil
+		p = len(data.PolicyActions)
 	}
+
+	return model.Policy{
+		CountryCode: alpha3,
+		Scope:       date,
+		Stringency:  stringency,
+		Policies:    p,
+	}, nil
 }
