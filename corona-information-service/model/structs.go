@@ -59,3 +59,10 @@ type Status struct {
 	Version string `json:"version"`
 	Uptime  int    `json:"uptime"`
 }
+
+type Webhook struct {
+	ID      string `json:"id,omitempty" firestore:"-"`
+	Url     string `json:"url" firestore:"url"`
+	Country string `json:"country" firestore:"country"`
+	Calls   int    `json:"calls" firestore:"calls"`
+}

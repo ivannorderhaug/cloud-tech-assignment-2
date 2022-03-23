@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"corona-information-service/functions"
 	"corona-information-service/model"
+	"corona-information-service/tools"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -16,7 +16,7 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, ok, msg := functions.PathSplitter(r.URL.Path, 1)
+	path, ok, msg := tools.PathSplitter(r.URL.Path, 1)
 	if !ok {
 		http.Error(w, msg, http.StatusNotFound)
 		return
@@ -35,7 +35,7 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Validates if date input is correctly formatted.
-	if !functions.IsValidDate(date) {
+	if !tools.IsValidDate(date) {
 		http.Error(w, "Date parameter is wrongly formatted, please see if it matches the correct format. (YYYY-MM-dd)", http.StatusBadRequest)
 		return
 	}
@@ -51,7 +51,8 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
-	url := "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/" + alpha3 + "/" + date
+	url := STRINGENCY_URL + alpha3 + "/" + date
+
 	res, err := issueRequest(url) //returns response
 	if err != nil {
 		return model.Policy{}, err
