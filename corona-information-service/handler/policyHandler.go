@@ -3,7 +3,6 @@ package handler
 import (
 	"corona-information-service/model"
 	"corona-information-service/tools"
-	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
@@ -47,26 +46,29 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Encodes struct
-	encodePolicyInformation(w, covidPolicy)
+	tools.Encode(w, covidPolicy)
 }
 
 func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
-	url := STRINGENCY_URL + alpha3 + "/" + date
+	url := model.STRINGENCY_URL + alpha3 + "/" + date
 
-	res, err := issueRequest(url) //returns response
+	res, err := tools.IssueRequest(http.MethodGet, url, nil) //returns response
 	if err != nil {
 		return model.Policy{}, err
 	}
 
-	w, err := decodeResponse(res) //returns decoded wrapper for stringency data
-	if err != nil {
-		return model.Policy{}, err
-	}
+	var data model.CovidPolicyData
 
-	stringency := w.StringencyData.Stringency
+	err2 := tools.Decode(res, &data)
+	if err2 != nil {
+		return model.Policy{}, err2
 
-	if w.StringencyData.StringencyActual != 0 {
-		stringency = w.StringencyData.StringencyActual
+	} //returns decoded wrapper for stringency and policy data
+
+	stringency := data.StringencyData.Stringency
+
+	if data.StringencyData.StringencyActual != 0 {
+		stringency = data.StringencyData.StringencyActual
 	}
 
 	//If there is no stringency data, the value will be set to 0 by default.
@@ -75,12 +77,12 @@ func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
 		stringency = -1
 	}
 
-	if len(w.PolicyActions) > 1 {
+	if len(data.PolicyActions) > 1 {
 		return model.Policy{
 			CountryCode: alpha3,
 			Scope:       date,
 			Stringency:  stringency,
-			Policies:    len(w.PolicyActions),
+			Policies:    len(data.PolicyActions),
 		}, nil
 	} else {
 		return model.Policy{
@@ -89,55 +91,5 @@ func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
 			Stringency:  stringency,
 			Policies:    0,
 		}, nil
-	}
-}
-
-// issueRequest */
-func issueRequest(url string) (*http.Response, error) {
-	// Create new request
-	r, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return &http.Response{}, err
-	}
-	// Setting content type -> effect depends on the service provider
-	r.Header.Add("content-type", "application/json")
-
-	// Instantiate the client
-	client := &http.Client{}
-
-	// Issue request
-	res, err := client.Do(r)
-	if err != nil {
-		return &http.Response{}, err
-	}
-
-	return res, nil
-}
-
-// decodeResponse */
-func decodeResponse(res *http.Response) (model.CovidPolicyData, error) {
-	var w model.CovidPolicyData
-
-	dec := json.NewDecoder(res.Body)
-	if err := dec.Decode(&w); err != nil {
-		return model.CovidPolicyData{}, err
-	}
-
-	return w, nil
-}
-
-// encodePolicyInformation */
-func encodePolicyInformation(w http.ResponseWriter, r model.Policy) {
-	// Write content type header
-	w.Header().Add("content-type", "application/json")
-
-	// Instantiate encoder
-	encoder := json.NewEncoder(w)
-
-	//Encodes response
-	err := encoder.Encode(r)
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
 	}
 }

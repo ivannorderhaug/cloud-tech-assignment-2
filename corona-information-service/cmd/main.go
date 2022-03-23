@@ -3,6 +3,7 @@ package main
 import (
 	"corona-information-service/db"
 	"corona-information-service/handler"
+	"corona-information-service/model"
 	"log"
 	"net/http"
 	"os"
@@ -21,12 +22,12 @@ func main() {
 	}
 
 	// Set up handler endpoints
-	http.HandleFunc(handler.DEFAULT_PATH, handler.DefaultHandler)
-	http.HandleFunc(handler.CASE_PATH, handler.CaseHandler)
-	http.HandleFunc(handler.POLICY_PATH, handler.PolicyHandler)
-	http.HandleFunc(handler.STATUS_PATH, handler.StatusHandler)
-	http.HandleFunc(handler.NOTIFICATION_PATH, handler.NotificationHandler)
-	http.HandleFunc(strings.TrimSuffix(handler.NOTIFICATION_PATH, "/"), handler.NotificationHandler) //Will be forgiving since some forget "/" at the end
+	http.HandleFunc(model.DEFAULT_PATH, handler.DefaultHandler)
+	http.HandleFunc(model.CASE_PATH, handler.CaseHandler)
+	http.HandleFunc(model.POLICY_PATH, handler.PolicyHandler)
+	http.HandleFunc(model.STATUS_PATH, handler.StatusHandler)
+	http.HandleFunc(model.NOTIFICATION_PATH, handler.NotificationHandler)
+	http.HandleFunc(strings.TrimSuffix(model.NOTIFICATION_PATH, "/"), handler.NotificationHandler) //Will be forgiving since some forget "/" at the end
 
 	// Start server
 	log.Println("Starting server on port " + port + " ...")

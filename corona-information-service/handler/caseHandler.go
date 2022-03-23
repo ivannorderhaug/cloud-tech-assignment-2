@@ -31,7 +31,8 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	if len(s) == 3 {
 		//Issues a RESTCountries api request if input is alpha3.
 		//Returns the country name
-		s = fmt.Sprint(tools.GetCountryByAlphaCode(s))
+		country, _ := tools.GetCountryByAlphaCode(s)
+		s = fmt.Sprint(country)
 	}
 	query := fmt.Sprintf("query {\n  country(name: \"%s\") {\n    name\n    mostRecent {\n      date(format: \"yyyy-MM-dd\")\n      confirmed\n      recovered\n      deaths\n      growthRate\n    }\n  }\n}", s)
 
@@ -40,7 +41,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	res := issueGraphQLRequest(CASES_URL, jsonQuery)
+	res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
 	mp := unmarshalResponse(res)
 
 	if len(mp.Data.Country.Name) == 0 {
@@ -57,29 +58,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		GrowthRate:     mp.Data.Country.Info.GrowthRate,
 	}
 
-	encodeCaseInformation(w, c)
-}
-
-//issueGraphQLRequest Issues a http request of method POST. Returns response */
-func issueGraphQLRequest(url string, jsonQuery []byte) *http.Response {
-	// Create new request
-	r, err := http.NewRequest(http.MethodPost, url, strings.NewReader(string(jsonQuery)))
-	if err != nil {
-		fmt.Errorf("Error in creating request:", err.Error())
-	}
-	// Setting content type -> effect depends on the service provider
-	r.Header.Add("content-type", "application/json")
-
-	// Instantiate the client
-	client := &http.Client{}
-
-	// Issue request
-	res, err := client.Do(r)
-	if err != nil {
-		fmt.Errorf("Error in response:", err.Error())
-	}
-
-	return res
+	tools.Encode(w, c)
 }
 
 // unmarshalResponse Method for unmarshalling GraphQL response into a struct */
@@ -96,20 +75,4 @@ func unmarshalResponse(res *http.Response) model.Response {
 	}
 
 	return response
-}
-
-// encodeCaseInformation */
-func encodeCaseInformation(w http.ResponseWriter, r model.Case) {
-	// Write content type header
-	w.Header().Add("content-type", "application/json")
-
-	// Instantiate encoder
-	encoder := json.NewEncoder(w)
-
-	//Encodes response
-	err := encoder.Encode(r)
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
-	}
 }

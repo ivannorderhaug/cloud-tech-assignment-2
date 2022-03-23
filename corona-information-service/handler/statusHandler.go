@@ -2,14 +2,14 @@ package handler
 
 import (
 	"corona-information-service/model"
-	"encoding/json"
+	"corona-information-service/tools"
 	"net/http"
 	"time"
 )
 
 var startTime = time.Now()
 
-//getUptime: Gets getUptime
+//getUptime: Gets uptime
 func getUptime() time.Duration {
 	return time.Since(startTime)
 }
@@ -21,19 +21,19 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	casesApi, err := getStatus(CASES_URL)
+	casesApi, err := getStatus(model.CASES_URL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	policyApi, err := getStatus(STRINGENCY_URL + "nor/" + "2022-02-04")
+	policyApi, err := getStatus(model.STRINGENCY_URL + "nor/" + "2022-02-04")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	restCountriesApi, err := getStatus(RESTCOUNTRIES_URL)
+	restCountriesApi, err := getStatus(model.RESTCOUNTRIES_URL)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
@@ -43,11 +43,11 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		CasesApi:      casesApi,
 		PolicyApi:     policyApi,
 		RestCountries: restCountriesApi,
-		Version:       VERSION,
+		Version:       model.VERSION,
 		Uptime:        int(getUptime().Seconds()),
 	}
 
-	encodeStatusInformation(w, status)
+	tools.Encode(w, status)
 
 }
 
@@ -70,20 +70,4 @@ func getStatus(api string) (string, error) {
 		return "", err
 	}
 	return res.Status, nil
-}
-
-// encodeStatusInformation */
-func encodeStatusInformation(w http.ResponseWriter, r model.Status) {
-	// Write content type header
-	w.Header().Add("content-type", "application/json")
-
-	// Instantiate encoder
-	encoder := json.NewEncoder(w)
-
-	//Encodes response
-	err := encoder.Encode(r)
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
-	}
 }

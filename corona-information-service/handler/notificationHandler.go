@@ -47,7 +47,6 @@ func getWebhookHandler(w http.ResponseWriter, r *http.Request) {
 			getWebhook(w, parts[4])
 			return
 		}
-
 	default:
 		http.Error(w, "Incorrect path format.", http.StatusBadRequest)
 		return
@@ -64,18 +63,7 @@ func getWebhook(w http.ResponseWriter, webhookId string) {
 	webhook.ID = documentFromFirestore.Ref.ID
 	documentFromFirestore.DataTo(&webhook)
 
-	// Write content type header
-	w.Header().Add("content-type", "application/json")
-
-	// Instantiate encoder
-	encoder := json.NewEncoder(w)
-
-	//Encodes response
-	err = encoder.Encode(webhook)
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
-	}
+	tools.Encode(w, webhook)
 }
 
 // getAllWebhooks */
@@ -103,18 +91,7 @@ func getAllWebhooks(w http.ResponseWriter) {
 		return
 	}
 
-	// Write content type header
-	w.Header().Add("content-type", "application/json")
-
-	// Instantiate encoder
-	encoder := json.NewEncoder(w)
-
-	//Encodes response
-	err = encoder.Encode(response)
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
-	}
+	tools.Encode(w, response)
 }
 
 // registerWebhook */
@@ -144,18 +121,7 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 	var response = make(map[string]string, 1)
 	response["id"] = webhookID
 
-	// Write content type header
-	w.Header().Add("content-type", "application/json")
-
-	// Instantiate encoder
-	encoder := json.NewEncoder(w)
-
-	//Encodes response
-	err = encoder.Encode(response)
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
-	}
+	tools.Encode(w, response)
 }
 
 func deleteWebhook(w http.ResponseWriter, webhookId string) {
@@ -167,16 +133,5 @@ func deleteWebhook(w http.ResponseWriter, webhookId string) {
 	response := make(map[string]string, 1)
 	response["result"] = "The webhook has been successfully removed from the database!"
 
-	// Write content type header
-	w.Header().Add("content-type", "application/json")
-
-	// Instantiate encoder
-	encoder := json.NewEncoder(w)
-
-	//Encodes response
-	err := encoder.Encode(response)
-	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
-		return
-	}
+	tools.Encode(w, response)
 }

@@ -1,9 +1,8 @@
 package tools
 
 import (
-	"encoding/json"
+	"corona-information-service/model"
 	"fmt"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -36,13 +35,42 @@ func PathSplitter(path string, length int) ([]string, bool, string) {
 // GetCountryByAlphaCode
 // Issues a http request of method GET to the RESTCountries API
 // Decodes the response and returns an interface
-func GetCountryByAlphaCode(alpha3 string) interface{} {
-	url := fmt.Sprintf("https://restcountries.com/v3.1/alpha/%s?fields=name", alpha3)
-
+func GetCountryByAlphaCode(alpha3 string) (interface{}, error) {
+	url := fmt.Sprintf(model.RESTCOUNTRIES_URL+"alpha/%s?fields=name", alpha3)
+	fmt.Println(url)
 	// Create new request
-	r, err := http.NewRequest(http.MethodGet, url, nil)
+	res, err := IssueRequest(http.MethodGet, url, nil)
 	if err != nil {
-		fmt.Errorf("Error in creating request:", err.Error())
+		return nil, err
+	}
+
+	//Local struct, only used for this purpose
+	var c struct {
+		Name interface{} `json:"name"`
+	}
+
+	err = Decode(res, &c)
+	if err != nil {
+		return nil, err
+	}
+
+	//Returns an interface by going one layer into the country name interface and picking out the common name
+	return c.Name.(map[string]interface{})["common"], nil
+}
+
+//IsValidDate Uses Regular Expressions to validate if string matches required format */
+func IsValidDate(date string) bool {
+	//YYYY-mm-dd
+	pattern := regexp.MustCompile("([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))")
+	return pattern.MatchString(date)
+}
+
+// IssueRequest */
+func IssueRequest(method string, url string, body []byte) (*http.Response, error) {
+	// Create new request
+	r, err := http.NewRequest(method, url, strings.NewReader(string(body)))
+	if err != nil {
+		return &http.Response{}, err
 	}
 	// Setting content type -> effect depends on the service provider
 	r.Header.Add("content-type", "application/json")
@@ -53,29 +81,8 @@ func GetCountryByAlphaCode(alpha3 string) interface{} {
 	// Issue request
 	res, err := client.Do(r)
 	if err != nil {
-		fmt.Errorf("Error in response:", err.Error())
+		return &http.Response{}, err
 	}
 
-	//Creates decoder to decode response from GET request
-	decoder := json.NewDecoder(res.Body)
-
-	//Local struct, only used for this purpose
-	var c struct {
-		Name interface{} `json:"name"`
-	}
-
-	//Populates slice if decoder is successful
-	if err := decoder.Decode(&c); err != nil {
-		log.Fatal(err)
-	}
-
-	//Returns an interface by going one layer into the country name interface and picking out the common name
-	return c.Name.(map[string]interface{})["common"]
-}
-
-//IsValidDate Uses Regular Expressions to validate if string matches required format */
-func IsValidDate(date string) bool {
-	//YYYY-mm-dd
-	pattern := regexp.MustCompile("([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))")
-	return pattern.MatchString(date)
+	return res, nil
 }
