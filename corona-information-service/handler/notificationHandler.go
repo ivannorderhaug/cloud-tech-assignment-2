@@ -102,7 +102,7 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&wh)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, "Error during decoding", http.StatusInternalServerError)
 		return
 	}
 
@@ -113,7 +113,7 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 
 	webhookID, err := db.AddToFirestore(COLLECTION, wh)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, "Error adding webhook to database", http.StatusInternalServerError)
 		return
 	}
 
@@ -126,7 +126,7 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 
 func deleteWebhook(w http.ResponseWriter, webhookId string) {
 	if err := db.DeleteSingleDocumentFromFirestore(COLLECTION, webhookId); err != nil {
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		http.Error(w, "Error deleting webhook from database!", http.StatusInternalServerError)
 		return
 	}
 

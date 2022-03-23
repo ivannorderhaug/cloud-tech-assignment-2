@@ -42,7 +42,8 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 	//Issues request, decodes it and returns a struct
 	covidPolicy, err := getCovidPolicy(s, date)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, "Error while issuing a request", http.StatusInternalServerError)
+		return
 	}
 
 	//Encodes struct

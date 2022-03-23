@@ -5,8 +5,6 @@ import (
 	"corona-information-service/tools"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -24,7 +22,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Country name or isocode.
+	//Country name or alpha3.
 	//Converts string to lowercase before making the first letter uppercase to satisfy the graphql api search parameter
 	s := strings.Title(strings.ToLower(path[0]))
 
@@ -38,41 +36,33 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonQuery, err := json.Marshal(model.GraphQLRequest{Query: query})
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "Error during encoding", http.StatusInternalServerError)
+		return
 	}
 
 	res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
-	mp := unmarshalResponse(res)
+
+	var mp model.Response
+	decode := tools.Decode(res, &mp)
+	if decode != nil {
+		http.Error(w, "Error during decoding", http.StatusInternalServerError)
+		return
+	}
 
 	if len(mp.Data.Country.Name) == 0 {
 		http.Error(w, "Could not find a country with that name", http.StatusNotFound)
 		return
 	}
 
+	info := mp.Data.Country.Info
 	c := model.Case{
 		Country:        mp.Data.Country.Name,
-		Date:           mp.Data.Country.Info.Date,
-		ConfirmedCases: mp.Data.Country.Info.Confirmed,
-		Recovered:      mp.Data.Country.Info.Recovered,
-		Deaths:         mp.Data.Country.Info.Deaths,
-		GrowthRate:     mp.Data.Country.Info.GrowthRate,
+		Date:           info.Date,
+		ConfirmedCases: info.Confirmed,
+		Recovered:      info.Recovered,
+		Deaths:         info.Deaths,
+		GrowthRate:     info.GrowthRate,
 	}
 
 	tools.Encode(w, c)
-}
-
-// unmarshalResponse Method for unmarshalling GraphQL response into a struct */
-func unmarshalResponse(res *http.Response) model.Response {
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	var response model.Response
-
-	if err := json.Unmarshal(body, &response); err != nil {
-		log.Fatal(err)
-	}
-
-	return response
 }

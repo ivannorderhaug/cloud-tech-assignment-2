@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"bytes"
 	"corona-information-service/model"
 	"fmt"
 	"net/http"
@@ -67,7 +68,7 @@ func IsValidDate(date string) bool {
 // IssueRequest */
 func IssueRequest(method string, url string, body []byte) (*http.Response, error) {
 	// Create new request
-	r, err := http.NewRequest(method, url, strings.NewReader(string(body)))
+	r, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
 		return &http.Response{}, err
 	}
