@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"corona-information-service/model"
-	"corona-information-service/tools"
+	model2 "corona-information-service/internal/model"
+	tools2 "corona-information-service/internal/tools"
 	"net/http"
 	"time"
 )
@@ -21,32 +21,32 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	casesApi, err := tools.IssueRequest(http.MethodGet, model.CASES_URL+"?query=%7B__typename%7D", nil)
+	casesApi, err := tools2.IssueRequest(http.MethodGet, model2.CASES_URL+"?query=%7B__typename%7D", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	policyApi, err := tools.IssueRequest(http.MethodHead, model.STRINGENCY_URL+"nor/"+"2022-02-04", nil)
+	policyApi, err := tools2.IssueRequest(http.MethodHead, model2.STRINGENCY_URL+"nor/"+"2022-02-04", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	restCountriesApi, err := tools.IssueRequest(http.MethodHead, model.RESTCOUNTRIES_URL, nil)
+	restCountriesApi, err := tools2.IssueRequest(http.MethodHead, model2.RESTCOUNTRIES_URL, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	status := model.Status{
+	status := model2.Status{
 		CasesApi:      casesApi.Status,
 		PolicyApi:     policyApi.Status,
 		RestCountries: restCountriesApi.Status,
-		Version:       model.VERSION,
+		Version:       model2.VERSION,
 		Uptime:        int(getUptime().Seconds()),
 	}
 
-	tools.Encode(w, status)
+	tools2.Encode(w, status)
 
 }

@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"corona-information-service/db"
-	"corona-information-service/model"
-	"corona-information-service/tools"
+	"corona-information-service/internal/db"
+	"corona-information-service/internal/model"
+	tools2 "corona-information-service/internal/tools"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -63,7 +63,7 @@ func getWebhook(w http.ResponseWriter, webhookId string) {
 	webhook.ID = documentFromFirestore.Ref.ID
 	documentFromFirestore.DataTo(&webhook)
 
-	tools.Encode(w, webhook)
+	tools2.Encode(w, webhook)
 }
 
 // getAllWebhooks */
@@ -91,7 +91,7 @@ func getAllWebhooks(w http.ResponseWriter) {
 		return
 	}
 
-	tools.Encode(w, response)
+	tools2.Encode(w, response)
 }
 
 // registerWebhook */
@@ -108,7 +108,7 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 
 	//checks if alpha3 code was used as param for country
 	if len(wh.Country) == 3 {
-		country, _ := tools.GetCountryByAlphaCode(wh.Country)
+		country, _ := tools2.GetCountryByAlphaCode(wh.Country)
 		wh.Country = fmt.Sprint(country)
 
 	}
@@ -123,7 +123,7 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 	var response = make(map[string]string, 1)
 	response["id"] = webhookID
 
-	tools.Encode(w, response)
+	tools2.Encode(w, response)
 }
 
 func deleteWebhook(w http.ResponseWriter, webhookId string) {
@@ -135,5 +135,5 @@ func deleteWebhook(w http.ResponseWriter, webhookId string) {
 	response := make(map[string]string, 1)
 	response["result"] = "The webhook has been successfully removed from the database!"
 
-	tools.Encode(w, response)
+	tools2.Encode(w, response)
 }

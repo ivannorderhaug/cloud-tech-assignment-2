@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"corona-information-service/model"
-	"corona-information-service/tools"
+	model2 "corona-information-service/internal/model"
+	tools2 "corona-information-service/internal/tools"
 	"net/http"
 	"strings"
 	"time"
@@ -15,7 +15,7 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, ok, msg := tools.PathSplitter(r.URL.Path, 1)
+	path, ok, msg := tools2.PathSplitter(r.URL.Path, 1)
 	if !ok {
 		http.Error(w, msg, http.StatusNotFound)
 		return
@@ -34,7 +34,7 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Validates if date input is correctly formatted.
-	if !tools.IsValidDate(date) {
+	if !tools2.IsValidDate(date) {
 		http.Error(w, "Date parameter is wrongly formatted, please see if it matches the correct format. (YYYY-MM-dd)", http.StatusBadRequest)
 		return
 	}
@@ -47,22 +47,22 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Encodes struct
-	tools.Encode(w, covidPolicy)
+	tools2.Encode(w, covidPolicy)
 }
 
-func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
-	url := tools.MakeURL(model.STRINGENCY_URL, alpha3, date)
+func getCovidPolicy(alpha3 string, date string) (model2.Policy, error) {
+	url := tools2.MakeURL(model2.STRINGENCY_URL, alpha3, date)
 
-	res, err := tools.IssueRequest(http.MethodGet, url, nil) //returns response
+	res, err := tools2.IssueRequest(http.MethodGet, url, nil) //returns response
 	if err != nil {
-		return model.Policy{}, err
+		return model2.Policy{}, err
 	}
 
-	var data model.TmpPolicy
+	var data model2.TmpPolicy
 
-	err2 := tools.Decode(res, &data)
+	err2 := tools2.Decode(res, &data)
 	if err2 != nil {
-		return model.Policy{}, err2
+		return model2.Policy{}, err2
 	} //returns decoded wrapper for stringency and policy data
 
 	stringency := data.StringencyData.Stringency
@@ -82,7 +82,7 @@ func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
 		p = len(data.PolicyActions)
 	}
 
-	return model.Policy{
+	return model2.Policy{
 		CountryCode: alpha3,
 		Scope:       date,
 		Stringency:  stringency,

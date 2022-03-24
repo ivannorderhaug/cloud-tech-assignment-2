@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"corona-information-service/model"
+	"corona-information-service/internal/model"
 	"net/http"
 )
 

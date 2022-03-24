@@ -2,7 +2,7 @@ package tools
 
 import (
 	"bytes"
-	"corona-information-service/model"
+	"corona-information-service/internal/model"
 	"fmt"
 	"net/http"
 	"regexp"
