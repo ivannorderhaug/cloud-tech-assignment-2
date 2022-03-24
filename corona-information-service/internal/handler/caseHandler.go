@@ -2,7 +2,7 @@ package handler
 
 import (
 	"corona-information-service/internal/model"
-	"corona-information-service/internal/tools"
+	tools2 "corona-information-service/tools"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,7 +16,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, ok, msg := tools.PathSplitter(r.URL.Path, 1)
+	path, ok, msg := tools2.PathSplitter(r.URL.Path, 1)
 	if !ok {
 		http.Error(w, msg, http.StatusNotFound)
 		return
@@ -33,7 +33,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	if len(s) == 3 {
 		//Issues a RESTCountries api request if input is alpha3.
 		//Returns the country name
-		country, _ := tools.GetCountryByAlphaCode(s)
+		country, _ := tools2.GetCountryByAlphaCode(s)
 		s = fmt.Sprint(country)
 
 	}
@@ -48,10 +48,10 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
+	res, _ := tools2.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
 
 	var tmpCase model.TmpCase
-	decode := tools.Decode(res, &tmpCase)
+	decode := tools2.Decode(res, &tmpCase)
 	if decode != nil {
 		http.Error(w, "Error during decoding", http.StatusInternalServerError)
 		return
@@ -72,5 +72,5 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		GrowthRate:     info.GrowthRate,
 	}
 
-	tools.Encode(w, c)
+	tools2.Encode(w, c)
 }
