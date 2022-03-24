@@ -1,8 +1,8 @@
 package handler
 
 import (
-	model2 "corona-information-service/internal/model"
-	tools2 "corona-information-service/internal/tools"
+	"corona-information-service/internal/model"
+	"corona-information-service/internal/tools"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,7 +16,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, ok, msg := tools2.PathSplitter(r.URL.Path, 1)
+	path, ok, msg := tools.PathSplitter(r.URL.Path, 1)
 	if !ok {
 		http.Error(w, msg, http.StatusNotFound)
 		return
@@ -33,25 +33,25 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	if len(s) == 3 {
 		//Issues a RESTCountries api request if input is alpha3.
 		//Returns the country name
-		country, _ := tools2.GetCountryByAlphaCode(s)
+		country, _ := tools.GetCountryByAlphaCode(s)
 		s = fmt.Sprint(country)
 
 	}
 
 	//Formats query
-	query := fmt.Sprintf(model2.QUERY, s)
+	query := fmt.Sprintf(model.QUERY, s)
 
 	fmt.Println(query)
-	jsonQuery, err := json.Marshal(model2.GraphQLRequest{Query: query})
+	jsonQuery, err := json.Marshal(model.GraphQLRequest{Query: query})
 	if err != nil {
 		http.Error(w, "Error during encoding", http.StatusInternalServerError)
 		return
 	}
 
-	res, _ := tools2.IssueRequest(http.MethodPost, model2.CASES_URL, jsonQuery)
+	res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
 
-	var tmpCase model2.TmpCase
-	decode := tools2.Decode(res, &tmpCase)
+	var tmpCase model.TmpCase
+	decode := tools.Decode(res, &tmpCase)
 	if decode != nil {
 		http.Error(w, "Error during decoding", http.StatusInternalServerError)
 		return
@@ -63,7 +63,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := tmpCase.Data.Country.MostRecent
-	c := model2.Case{
+	c := model.Case{
 		Country:        tmpCase.Data.Country.Name,
 		Date:           info.Date,
 		ConfirmedCases: info.Confirmed,
@@ -72,5 +72,5 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		GrowthRate:     info.GrowthRate,
 	}
 
-	tools2.Encode(w, c)
+	tools.Encode(w, c)
 }
