@@ -3,7 +3,6 @@ package handler
 import (
 	"corona-information-service/model"
 	"corona-information-service/tools"
-	"encoding/json"
 	"net/http"
 	"time"
 )
@@ -22,9 +21,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//This has to be done as the casesAPI only accepts POST
-	query, _ := json.Marshal(model.GraphQLRequest{Query: model.QUERY})
-	casesApi, err := tools.IssueRequest(http.MethodPost, model.CASES_URL, query)
+	casesApi, err := tools.IssueRequest(http.MethodGet, model.CASES_URL+"?query=%7B__typename%7D", nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return

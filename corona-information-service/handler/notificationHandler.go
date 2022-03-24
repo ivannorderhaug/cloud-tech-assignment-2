@@ -108,7 +108,9 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 
 	//checks if alpha3 code was used as param for country
 	if len(wh.Country) == 3 {
-		wh.Country = fmt.Sprint(tools.GetCountryByAlphaCode(wh.Country))
+		country, _ := tools.GetCountryByAlphaCode(wh.Country)
+		wh.Country = fmt.Sprint(country)
+
 	}
 
 	webhookID, err := db.AddToFirestore(COLLECTION, wh)
