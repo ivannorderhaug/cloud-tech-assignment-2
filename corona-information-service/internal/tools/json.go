@@ -22,8 +22,19 @@ func Encode(w http.ResponseWriter, data interface{}) {
 }
 
 // Decode */
-func Decode(res *http.Response, data interface{}) error {
-	dec := json.NewDecoder(res.Body)
+func Decode(res interface{}, data interface{}) error {
+	var dec *json.Decoder
+
+	switch res.(type) {
+	case *http.Request:
+		dec = json.NewDecoder(res.(*http.Response).Body)
+		break
+	case *http.Response:
+		dec = json.NewDecoder(res.(*http.Response).Body)
+		break
+	default:
+		return nil
+	}
 
 	if err := dec.Decode(data); err != nil {
 		return err
