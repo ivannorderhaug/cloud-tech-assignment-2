@@ -37,15 +37,12 @@ func getWebhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	//If the length of parts is 5, then it means the user has specified webhook id in their request
 	case 5:
-
 		if r.Method == http.MethodDelete {
 			deleteWebhook(w, parts[4])
-			return
 		}
 
 		if r.Method == http.MethodGet {
 			getWebhook(w, parts[4])
-			return
 		}
 	default:
 		http.Error(w, "Incorrect path format.", http.StatusBadRequest)
@@ -56,6 +53,7 @@ func getWebhookHandler(w http.ResponseWriter, r *http.Request) {
 func getWebhook(w http.ResponseWriter, webhookId string) {
 	documentFromFirestore, err := db.GetSingleDocumentFromFirestore(COLLECTION, webhookId)
 	if err != nil {
+		http.Error(w, "Could not find webhook with id: "+webhookId, http.StatusNotFound)
 		return
 	}
 
@@ -70,6 +68,7 @@ func getWebhook(w http.ResponseWriter, webhookId string) {
 func getAllWebhooks(w http.ResponseWriter) {
 	documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(COLLECTION)
 	if err != nil {
+		http.Error(w, "Error retrieving data from database", http.StatusInternalServerError)
 		return
 	}
 	response := make([]model.Webhook, 0)
@@ -80,6 +79,7 @@ func getAllWebhooks(w http.ResponseWriter) {
 		webhook.ID = documentSnapshot.Ref.ID
 		err = documentSnapshot.DataTo(&webhook)
 		if err != nil {
+			http.Error(w, "Error mapping data from database to data structure", http.StatusInternalServerError)
 			return
 		}
 		response = append(response, webhook)
@@ -108,9 +108,11 @@ func registerWebhook(w http.ResponseWriter, r *http.Request) {
 
 	//checks if alpha3 code was used as param for country
 	if len(wh.Country) == 3 {
-		country, _ := tools.GetCountryByAlphaCode(wh.Country)
+		country, err := tools.GetCountryByAlphaCode(wh.Country)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		wh.Country = fmt.Sprint(country)
-
 	}
 
 	webhookID, err := db.AddToFirestore(COLLECTION, wh)
