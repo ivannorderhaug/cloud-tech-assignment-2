@@ -13,7 +13,7 @@ const RESTCOUNTRIES = "https://restcountries.com/v3.1/alpha/%s?fields=name"
 //PathSplitter
 //Example of usage: /corona/v1/cases/norway has a length of 5, if it matches basePathLength(which is 4)+length param(which is 1 in this case).
 //It'll return a slice containing only 1 element which is the search param (norway)*/
-func PathSplitter(path string, length int) ([]string, bool, string) {
+func PathSplitter(path string, length int) ([]string, bool) {
 	//Trims away "/" at the end of path. Only if there is one tjere
 	path = strings.TrimSuffix(path, "/")
 	//Splits the path into a slice, separating each part by "/"
@@ -23,15 +23,15 @@ func PathSplitter(path string, length int) ([]string, bool, string) {
 
 	if len(parts) == basePathLength {
 		//Returns empty slice with an error message as the path didn't match the required format
-		return []string{}, false, "Missing search parameter"
+		return []string{}, false
 	}
 
 	//Compares length of parts slice with basePath length+length param
 	if len(parts) != basePathLength+length {
 		//Returns empty slice with an error message as the path didn't match the required format
-		return []string{}, false, "Path not found, make sure the path matches the required path format specified on the root level and in the README."
+		return []string{}, false
 	}
-	return parts[basePathLength : basePathLength+length], true, "" //Empty message
+	return parts[basePathLength : basePathLength+length], true
 }
 
 // GetCountryByAlphaCode

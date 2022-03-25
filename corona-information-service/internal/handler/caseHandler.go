@@ -16,9 +16,9 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path, ok, msg := tools.PathSplitter(r.URL.Path, 1)
+	path, ok := tools.PathSplitter(r.URL.Path, 1)
 	if !ok {
-		http.Error(w, msg, http.StatusNotFound)
+		http.Error(w, "Path does not match the required path format specified on the root level and in the README.", http.StatusNotFound)
 		return
 	}
 
