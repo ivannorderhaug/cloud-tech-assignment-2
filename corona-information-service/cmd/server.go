@@ -4,6 +4,7 @@ import (
 	"corona-information-service/internal/db"
 	"corona-information-service/internal/handler"
 	"corona-information-service/internal/model"
+	"corona-information-service/tools"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 func main() {
 	//Initializes firestore client
 	db.InitializeFirestore()
-
+	tools.InitializeWebhooks()
 	// Handle port assignment (either based on environment variable, or local override)
 	port := os.Getenv("PORT")
 	if port == "" {

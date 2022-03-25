@@ -27,11 +27,9 @@ func Decode(res interface{}, data interface{}) error {
 
 	switch res.(type) {
 	case *http.Request:
-		dec = json.NewDecoder(res.(*http.Response).Body)
-		break
+		dec = json.NewDecoder(res.(*http.Request).Body)
 	case *http.Response:
 		dec = json.NewDecoder(res.(*http.Response).Body)
-		break
 	default:
 		return nil
 	}

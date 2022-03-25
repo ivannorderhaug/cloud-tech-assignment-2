@@ -2,6 +2,7 @@ package tools
 
 import (
 	"bytes"
+	"corona-information-service/internal/model"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -86,4 +87,11 @@ func IssueRequest(method string, url string, body []byte) (*http.Response, error
 	}
 
 	return res, nil
+}
+
+// RemoveIndex */
+func RemoveIndex(s []model.Webhook, index int) []model.Webhook {
+	ret := make([]model.Webhook, 0)
+	ret = append(ret, s[:index]...)
+	return append(ret, s[index+1:]...)
 }
