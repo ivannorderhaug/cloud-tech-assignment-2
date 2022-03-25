@@ -22,37 +22,28 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Country name or alpha3.
-	//Converts string to lowercase before making the first letter uppercase to satisfy the graphql api search parameter
-	s := strings.Title(strings.ToLower(path[0]))
-
-	if len(s) == 2 {
-		s = strings.ToUpper(s)
-	}
-
-	if len(s) == 3 {
-		//Issues a RESTCountries api request if input is alpha3.
-		//Returns the country name
-		country, _ := tools.GetCountryByAlphaCode(s)
-		s = fmt.Sprint(country)
-
-	}
-
-	//Formats query
-	query := fmt.Sprintf(model.QUERY, s)
-
-	fmt.Println(query)
-	jsonQuery, err := json.Marshal(model.GraphQLRequest{Query: query})
+	search, err := isCountryCode(path)
 	if err != nil {
-		http.Error(w, "Error during encoding", http.StatusInternalServerError)
+		http.Error(w, "Error getting country", http.StatusInternalServerError)
 		return
 	}
 
-	res, _ := tools.IssueRequest(http.MethodPost, model.CASES_URL, jsonQuery)
+	query, err := convertToGraphql(search)
+	if err != nil {
+		http.Error(w, "Error during marshalling", http.StatusInternalServerError)
+		return
+	}
+
+	res, err := tools.IssueRequest(http.MethodPost, model.CASES_URL, query)
+	if err != nil {
+		http.Error(w, "Error issuing the request", http.StatusInternalServerError)
+		return
+	}
 
 	var tmpCase model.TmpCase
-	decode := tools.Decode(res, &tmpCase)
-	if decode != nil {
+
+	err = tools.Decode(res, &tmpCase)
+	if err != nil {
 		http.Error(w, "Error during decoding", http.StatusInternalServerError)
 		return
 	}
@@ -73,4 +64,31 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tools.Encode(w, c)
+}
+
+func isCountryCode(search []string) (string, error) {
+	//Country name or alpha3.
+	//Converts string to lowercase before making the first letter uppercase to satisfy the graphql api search parameter
+	s := strings.Title(strings.ToLower(search[0]))
+	if len(s) == 3 {
+		//Issues a RESTCountries api request if input is alpha3.
+		//Returns the country name
+		country, err := tools.GetCountryByAlphaCode(s)
+		if err != nil {
+			return "", err
+		}
+		s = fmt.Sprint(country)
+	}
+	return s, nil
+}
+
+func convertToGraphql(search string) ([]byte, error) {
+	//Formats query
+	query := fmt.Sprintf(model.QUERY, search)
+
+	jsonQuery, err := json.Marshal(model.GraphQLRequest{Query: query})
+	if err != nil {
+		return nil, err
+	}
+	return jsonQuery, nil
 }
