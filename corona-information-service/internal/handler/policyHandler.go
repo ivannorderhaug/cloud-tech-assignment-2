@@ -51,7 +51,7 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 
 // getCovidPolicy Issues request to external API, decodes response into a struct, maps it correctly and returns it
 func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
-	url := fmt.Sprintf("%s%s/%s", model.POLICY_PATH, alpha3, date)
+	url := fmt.Sprintf("%s%s/%s", model.STRINGENCY_URL, alpha3, date)
 
 	res, err := tools.IssueRequest(http.MethodGet, url, nil) //returns response
 	if err != nil {
