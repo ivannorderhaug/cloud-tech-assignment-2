@@ -2,12 +2,13 @@ package tools
 
 import (
 	"bytes"
-	"corona-information-service/internal/model"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
 )
+
+const RESTCOUNTRIES = "https://restcountries.com/v3.1/alpha/%s?fields=name"
 
 //PathSplitter
 //Example of usage: /corona/v1/cases/norway has a length of 5, if it matches basePathLength(which is 4)+length param(which is 1 in this case).
@@ -37,7 +38,7 @@ func PathSplitter(path string, length int) ([]string, bool, string) {
 // Issues a http request of method GET to the RESTCountries API
 // Decodes the response and returns an interface
 func GetCountryByAlphaCode(alpha3 string) (interface{}, error) {
-	url := fmt.Sprintf(model.RESTCOUNTRIES_URL+"v3.1/alpha/%s?fields=name", alpha3)
+	url := fmt.Sprintf(RESTCOUNTRIES, alpha3)
 	// Create new request
 	res, err := IssueRequest(http.MethodGet, url, nil)
 	if err != nil {
