@@ -53,10 +53,8 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = tools.RunWebhookRoutine(tmpCase.Data.Country.Name)
-	if err != nil {
-		return
-	}
+	//Failed webhook routine doesn't need error handling
+	_ = tools.RunWebhookRoutine(tmpCase.Data.Country.Name)
 
 	info := tmpCase.Data.Country.MostRecent
 	c := model.Case{

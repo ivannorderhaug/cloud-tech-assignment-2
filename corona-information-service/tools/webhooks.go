@@ -103,31 +103,32 @@ func RegisterWebhook(r *http.Request) (map[string]string, error) {
 	return response, nil
 }
 
+// RunWebhookRoutine */
 func RunWebhookRoutine(country string) error {
 	for i, webhook := range webhooks {
 		if webhook.Country == country {
 
 			webhook.ActualCalls = webhook.ActualCalls + 1
+			//Updates webhook in memory
+			webhooks[i].ActualCalls = webhook.ActualCalls
 
+			//Updates webhook in db
 			err := db.UpdateWebhook(COLLECTION, webhook.ID, webhook.ActualCalls)
 			if err != nil {
 				return err
 			}
 
-			//This removes the webhook from memory
-			webhooks = RemoveIndex(webhooks, i)
-
-			//This adds the webhook back into the cache, with updated data
-			webhooks = append(webhooks, webhook)
-
 			if webhook.ActualCalls == webhook.Calls {
 				webhook.ActualCalls = 0
-				//This removes the webhook from memory
-				webhooks = RemoveIndex(webhooks, i)
+				
+				//Updates webhook in db
+				err = db.UpdateWebhook(COLLECTION, webhook.ID, webhook.ActualCalls)
+				if err != nil {
+					return err
+				}
 
-				//This adds the webhook back into the cache, with updated data
-				webhooks = append(webhooks, webhook)
-
+				//Updates webhook in memory
+				webhooks[i].ActualCalls = webhook.ActualCalls
 				err = callUrl(webhook.Url, webhook)
 				if err != nil {
 					return err
