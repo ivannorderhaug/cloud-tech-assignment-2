@@ -33,6 +33,12 @@ func getWebhookHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Error retrieving webhooks from database", http.StatusInternalServerError)
 			return
 		}
+
+		if len(webhooks) == 0 {
+			http.Error(w, "There are currently no webhooks registered in the database", http.StatusNotFound)
+			return
+		}
+
 		tools.Encode(w, webhooks)
 
 	//If the length of parts is 5, then it means the user has specified webhook id in their request
