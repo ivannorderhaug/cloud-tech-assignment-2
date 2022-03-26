@@ -30,12 +30,12 @@ func InitializeFirestore() {
 
 // AddToFirestore Simple method to add data to the firestore database.
 // Returns ID of document if successful
-func AddToFirestore(collectionName string, data interface{}) (string, error) {
-	docRef, _, err := client.Collection(collectionName).Add(ctx, data)
+func AddToFirestore(collectionName string, documentID string, data interface{}) error {
+	_, err := client.Collection(collectionName).Doc(documentID).Set(ctx, data)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return docRef.ID, nil
+	return nil
 }
 
 // CloseFirestore Method to gracefully close the firestore client
@@ -80,10 +80,10 @@ func DeleteSingleDocumentFromFirestore(collectionName string, documentID string)
 }
 
 // UpdateWebhook */
-func UpdateWebhook(collectionName string, documentID string, newValue int) error {
+func UpdateWebhook(collectionName string, documentID string, path string, newValue interface{}) error {
 	_, err := client.Collection(collectionName).Doc(documentID).Update(ctx, []firestore.Update{
 		{
-			Path:  "actual_calls",
+			Path:  path,
 			Value: newValue,
 		},
 	})

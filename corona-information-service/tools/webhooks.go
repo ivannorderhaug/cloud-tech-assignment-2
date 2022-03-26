@@ -6,7 +6,9 @@ import (
 	"corona-information-service/internal/model"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 )
 
 const COLLECTION = "notifications"
@@ -34,7 +36,7 @@ func GetWebhook(webhookId string) (model.Webhook, bool) {
 // GetAllWebhooks */
 func GetAllWebhooks() ([]model.Webhook, error) {
 	if len(webhooks) == 0 {
-		documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(COLLECTION)
+		documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(Hash([]byte(COLLECTION)))
 		if err != nil {
 			return []model.Webhook{}, err
 		}
@@ -42,7 +44,6 @@ func GetAllWebhooks() ([]model.Webhook, error) {
 		//Converts each document snapshot into a webhook interface and adds it to the global webhooks slice
 		for _, documentSnapshot := range documentsFromFirestore {
 			var webhook model.Webhook
-			webhook.ID = documentSnapshot.Ref.ID
 			err = documentSnapshot.DataTo(&webhook)
 			if err != nil {
 				return []model.Webhook{}, err
@@ -63,7 +64,7 @@ func DeleteWebhook(webhookId string) error {
 		}
 	}
 
-	if err := db.DeleteSingleDocumentFromFirestore(COLLECTION, webhookId); err != nil {
+	if err := db.DeleteSingleDocumentFromFirestore(Hash([]byte(COLLECTION)), webhookId); err != nil {
 		return err
 	}
 
@@ -88,17 +89,18 @@ func RegisterWebhook(r *http.Request) (map[string]string, error) {
 		webhook.Country = fmt.Sprint(country)
 	}
 
-	webhookID, err := db.AddToFirestore(COLLECTION, webhook)
+	id := autoId()
+	webhook.ID = id
+	//Adds webhook to database, return documentID which will be used as webhookId
+	err = db.AddToFirestore(Hash([]byte(COLLECTION)), Hash([]byte(id)), webhook)
 	if err != nil {
 		return map[string]string{}, err
 	}
-
-	webhook.ID = webhookID
 	webhooks = append(webhooks, webhook)
 
 	//Respond with ID
 	var response = make(map[string]string, 1)
-	response["id"] = webhookID
+	response["id"] = id
 
 	return response, nil
 }
@@ -113,7 +115,7 @@ func RunWebhookRoutine(country string) error {
 			webhooks[i].ActualCalls = webhook.ActualCalls
 
 			//Updates webhook in db
-			err := db.UpdateWebhook(COLLECTION, webhook.ID, webhook.ActualCalls)
+			err := db.UpdateWebhook(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
 			if err != nil {
 				return err
 			}
@@ -122,7 +124,7 @@ func RunWebhookRoutine(country string) error {
 				webhook.ActualCalls = 0
 
 				//Updates webhook in db
-				err = db.UpdateWebhook(COLLECTION, webhook.ID, webhook.ActualCalls)
+				err = db.UpdateWebhook(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
 				if err != nil {
 					return err
 				}
@@ -136,6 +138,19 @@ func RunWebhookRoutine(country string) error {
 		}
 	}
 	return nil
+}
+
+// autoId Randomly generated a 15 character long string
+func autoId() string {
+	rand.Seed(time.Now().UnixNano())
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+	arr := make([]rune, 15)
+	for i := range arr {
+		arr[i] = letters[rand.Intn(len(letters))]
+	}
+
+	return string(arr)
 }
 
 // callUrl
