@@ -1,8 +1,10 @@
 package tools
 
 import (
+	"bytes"
 	"corona-information-service/internal/db"
 	"corona-information-service/internal/model"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -126,10 +128,25 @@ func RunWebhookRoutine(country string) error {
 				//This adds the webhook back into the cache, with updated data
 				webhooks = append(webhooks, webhook)
 
-				// TODO Add CallURL Here
-				return nil
+				err = callUrl(webhook.Url, webhook)
+				if err != nil {
+					return err
+				}
 			}
 
+		}
+	}
+	return nil
+}
+
+// callUrl
+func callUrl(url string, data interface{}) error {
+	payloadBuffer := new(bytes.Buffer)
+	err := json.NewEncoder(payloadBuffer).Encode(data)
+	if err == nil {
+		_, err = http.Post(url, "application/json", payloadBuffer)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
