@@ -29,7 +29,6 @@ func InitializeFirestore() {
 }
 
 // AddToFirestore Simple method to add data to the firestore database.
-// Returns ID of document if successful
 func AddToFirestore(collectionName string, documentID string, data interface{}) error {
 	_, err := client.Collection(collectionName).Doc(documentID).Set(ctx, data)
 	if err != nil {
