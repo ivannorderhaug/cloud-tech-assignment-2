@@ -49,9 +49,9 @@ type Status struct {
 	CasesApi      string `json:"cases_api"`
 	PolicyApi     string `json:"policy_api"`
 	RestCountries string `json:"restcountries_api"`
-	//TODO Add webhooks
-	Version string `json:"version"`
-	Uptime  int    `json:"uptime"`
+	Webhooks      int    `json:"webhooks"`
+	Version       string `json:"version"`
+	Uptime        int    `json:"uptime"`
 }
 
 type Webhook struct {

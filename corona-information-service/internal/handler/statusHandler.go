@@ -40,10 +40,17 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	webhooksCount := 0
+	webhooks, err := tools.GetAllWebhooks()
+	if err == nil {
+		webhooksCount = len(webhooks)
+	}
+
 	status := model.Status{
 		CasesApi:      casesApi.Status,
 		PolicyApi:     policyApi.Status,
 		RestCountries: restCountriesApi.Status,
+		Webhooks:      webhooksCount,
 		Version:       model.VERSION,
 		Uptime:        int(getUptime().Seconds()),
 	}
