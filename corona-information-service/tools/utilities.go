@@ -91,7 +91,8 @@ func IssueRequest(method string, url string, body []byte) (*http.Response, error
 
 // RemoveIndex */
 func RemoveIndex(s []model.Webhook, index int) []model.Webhook {
-	ret := make([]model.Webhook, 0)
-	ret = append(ret, s[:index]...)
-	return append(ret, s[index+1:]...)
+	copy(s[index:], s[index+1:])  // Shift s[i+1:] left one index.
+	s[len(s)-1] = model.Webhook{} // Erase last element.
+
+	return s[:len(s)-1] //Returns updated slice, reason for -1 is because last element is empty
 }

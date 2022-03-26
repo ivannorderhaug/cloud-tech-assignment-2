@@ -78,3 +78,17 @@ func DeleteSingleDocumentFromFirestore(collectionName string, documentID string)
 	}
 	return nil
 }
+
+// UpdateWebhook */
+func UpdateWebhook(collectionName string, documentID string, newValue int) error {
+	_, err := client.Collection(collectionName).Doc(documentID).Update(ctx, []firestore.Update{
+		{
+			Path:  "actual_calls",
+			Value: newValue,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}

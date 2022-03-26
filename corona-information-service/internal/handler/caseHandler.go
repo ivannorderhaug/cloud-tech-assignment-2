@@ -53,6 +53,11 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = tools.RunWebhookRoutine(tmpCase.Data.Country.Name)
+	if err != nil {
+		return
+	}
+
 	info := tmpCase.Data.Country.MostRecent
 	c := model.Case{
 		Country:        tmpCase.Data.Country.Name,

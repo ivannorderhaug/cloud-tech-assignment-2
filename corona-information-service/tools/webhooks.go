@@ -56,7 +56,7 @@ func DeleteWebhook(webhookId string) error {
 	if len(webhooks) != 0 {
 		for i, wh := range webhooks {
 			if wh.ID == webhookId {
-				RemoveIndex(webhooks, i)
+				webhooks = RemoveIndex(webhooks, i)
 			}
 		}
 	}
@@ -99,4 +99,38 @@ func RegisterWebhook(r *http.Request) (map[string]string, error) {
 	response["id"] = webhookID
 
 	return response, nil
+}
+
+func RunWebhookRoutine(country string) error {
+	for i, webhook := range webhooks {
+		if webhook.Country == country {
+
+			webhook.ActualCalls = webhook.ActualCalls + 1
+
+			err := db.UpdateWebhook(COLLECTION, webhook.ID, webhook.ActualCalls)
+			if err != nil {
+				return err
+			}
+
+			//This removes the webhook from memory
+			webhooks = RemoveIndex(webhooks, i)
+
+			//This adds the webhook back into the cache, with updated data
+			webhooks = append(webhooks, webhook)
+
+			if webhook.ActualCalls == webhook.Calls {
+				webhook.ActualCalls = 0
+				//This removes the webhook from memory
+				webhooks = RemoveIndex(webhooks, i)
+
+				//This adds the webhook back into the cache, with updated data
+				webhooks = append(webhooks, webhook)
+
+				// TODO Add CallURL Here
+				return nil
+			}
+
+		}
+	}
+	return nil
 }
