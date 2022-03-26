@@ -64,7 +64,7 @@ func DeleteWebhook(webhookId string) error {
 		}
 	}
 
-	if err := db.DeleteSingleDocumentFromFirestore(Hash([]byte(COLLECTION)), webhookId); err != nil {
+	if err := db.DeleteSingleDocumentFromFirestore(Hash([]byte(COLLECTION)), Hash([]byte(webhookId))); err != nil {
 		return err
 	}
 
