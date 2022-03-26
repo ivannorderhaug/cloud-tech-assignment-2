@@ -120,7 +120,7 @@ func RunWebhookRoutine(country string) error {
 
 			if webhook.ActualCalls == webhook.Calls {
 				webhook.ActualCalls = 0
-				
+
 				//Updates webhook in db
 				err = db.UpdateWebhook(COLLECTION, webhook.ID, webhook.ActualCalls)
 				if err != nil {
@@ -129,10 +129,8 @@ func RunWebhookRoutine(country string) error {
 
 				//Updates webhook in memory
 				webhooks[i].ActualCalls = webhook.ActualCalls
-				err = callUrl(webhook.Url, webhook)
-				if err != nil {
-					return err
-				}
+
+				go callUrl(webhook.Url, webhook)
 			}
 
 		}
@@ -141,14 +139,13 @@ func RunWebhookRoutine(country string) error {
 }
 
 // callUrl
-func callUrl(url string, data interface{}) error {
+func callUrl(url string, data interface{}) {
 	payloadBuffer := new(bytes.Buffer)
 	err := json.NewEncoder(payloadBuffer).Encode(data)
 	if err == nil {
 		_, err = http.Post(url, "application/json", payloadBuffer)
 		if err != nil {
-			return err
+			return
 		}
 	}
-	return nil
 }
