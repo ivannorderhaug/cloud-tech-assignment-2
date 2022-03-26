@@ -132,6 +132,8 @@ func RunWebhookRoutine(country string) error {
 				//Updates webhook in memory
 				webhooks[i].ActualCalls = webhook.ActualCalls
 
+				webhook.Invoked = time.Now().UTC().String()
+				
 				go callUrl(webhook.Url, webhook)
 			}
 

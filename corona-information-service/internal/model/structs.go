@@ -55,6 +55,7 @@ type Status struct {
 }
 
 type Webhook struct {
+	Invoked     string `json:"invoked_at,omitempty" firestore:"_"`
 	ID          string `json:"id" firestore:"id"`
 	Url         string `json:"url" firestore:"url"`
 	Country     string `json:"country" firestore:"country"`
