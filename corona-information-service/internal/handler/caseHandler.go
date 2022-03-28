@@ -54,7 +54,9 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Failed webhook routine doesn't need error handling
-	_ = tools.RunWebhookRoutine(tmpCase.Data.Country.Name)
+	go func() {
+		_ = tools.RunWebhookRoutine(tmpCase.Data.Country.Name)
+	}()
 
 	info := tmpCase.Data.Country.MostRecent
 	c := model.Case{
