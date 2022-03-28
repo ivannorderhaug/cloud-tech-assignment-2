@@ -12,20 +12,22 @@ var ctx context.Context
 var client *firestore.Client
 
 // InitializeFirestore Method for initializing the firestore client */
-func InitializeFirestore() {
+func InitializeFirestore() error {
 	// Firebase initialisation
 	ctx = context.Background()
 
 	sa := option.WithCredentialsFile("./service-account.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
 	client, err = app.Firestore(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
+
+	return nil
 }
 
 // AddToFirestore Simple method to add data to the firestore database.
