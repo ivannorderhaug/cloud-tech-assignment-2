@@ -2,8 +2,9 @@ package tools
 
 import (
 	"bytes"
-	"corona-information-service/internal/db"
 	"corona-information-service/internal/model"
+	"corona-information-service/pkg/api"
+	"corona-information-service/pkg/db"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -13,7 +14,7 @@ import (
 
 const COLLECTION = "notifications"
 
-var webhooks = make([]model.Webhook, 0)
+var webhooks []model.Webhook
 
 // InitializeWebhooks */
 func InitializeWebhooks() {
@@ -35,40 +36,42 @@ func GetWebhook(webhookId string) (model.Webhook, bool) {
 
 // GetAllWebhooks */
 func GetAllWebhooks() ([]model.Webhook, error) {
-	if len(webhooks) == 0 {
-		documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(Hash([]byte(COLLECTION)))
+	documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(Hash([]byte(COLLECTION)))
+	if err != nil {
+		return []model.Webhook{}, err
+	}
+	webhooks = make([]model.Webhook, 0)
+	//Converts each document snapshot into a webhook interface and adds it to the global webhooks slice
+	for _, documentSnapshot := range documentsFromFirestore {
+		var webhook model.Webhook
+		err = documentSnapshot.DataTo(&webhook)
 		if err != nil {
 			return []model.Webhook{}, err
 		}
-
-		//Converts each document snapshot into a webhook interface and adds it to the global webhooks slice
-		for _, documentSnapshot := range documentsFromFirestore {
-			var webhook model.Webhook
-			err = documentSnapshot.DataTo(&webhook)
-			if err != nil {
-				return []model.Webhook{}, err
-			}
-			webhooks = append(webhooks, webhook)
-		}
+		webhooks = append(webhooks, webhook)
 	}
 	return webhooks, nil
 }
 
 // DeleteWebhook */
-func DeleteWebhook(webhookId string) error {
+func DeleteWebhook(webhookId string) (bool, error) {
+	var deleted = false
 	if len(webhooks) != 0 {
 		for i, wh := range webhooks {
 			if wh.ID == webhookId {
-				webhooks = RemoveIndex(webhooks, i)
+				copy(webhooks[i:], webhooks[i+1:])          // Shift s[i+1:] left one index.
+				webhooks[len(webhooks)-1] = model.Webhook{} // Erase last element.
+				webhooks = webhooks[:len(webhooks)-1]
+				deleted = true
 			}
 		}
 	}
 
 	if err := db.DeleteSingleDocumentFromFirestore(Hash([]byte(COLLECTION)), Hash([]byte(webhookId))); err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return deleted, nil
 }
 
 // RegisterWebhook */
@@ -82,7 +85,7 @@ func RegisterWebhook(r *http.Request) (map[string]string, error) {
 
 	//checks if alpha3 code was used as param for country
 	if len(webhook.Country) == 3 {
-		country, err := GetCountryByAlphaCode(webhook.Country)
+		country, err := api.GetCountryNameByAlphaCode(webhook.Country)
 		if err != nil {
 			return map[string]string{}, err
 		}
@@ -115,7 +118,7 @@ func RunWebhookRoutine(country string) error {
 			webhooks[i].ActualCalls = webhook.ActualCalls
 
 			//Updates webhook in db
-			err := db.UpdateWebhook(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
+			err := db.UpdateDocument(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
 			if err != nil {
 				return err
 			}
@@ -124,7 +127,7 @@ func RunWebhookRoutine(country string) error {
 				webhook.ActualCalls = 0
 
 				//Updates webhook in db
-				err = db.UpdateWebhook(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
+				err = db.UpdateDocument(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
 				if err != nil {
 					return err
 				}
@@ -133,7 +136,7 @@ func RunWebhookRoutine(country string) error {
 				webhooks[i].ActualCalls = webhook.ActualCalls
 
 				webhook.Invoked = time.Now().UTC().String()
-				
+
 				go callUrl(webhook.Url, webhook)
 			}
 

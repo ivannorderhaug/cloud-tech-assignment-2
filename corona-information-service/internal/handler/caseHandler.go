@@ -3,9 +3,7 @@ package handler
 import (
 	"corona-information-service/internal/model"
 	"corona-information-service/tools"
-	"fmt"
 	"net/http"
-	"strings"
 )
 
 // CaseHandler */
@@ -21,13 +19,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	country, err := isCountryCode(path)
-	if err != nil {
-		http.Error(w, "Error getting country", http.StatusInternalServerError)
-		return
-	}
-
-	query, err := tools.ConvertToGraphql(model.QUERY, country)
+	query, err := tools.ConvertToGraphql(model.QUERY, path[0])
 	if err != nil {
 		http.Error(w, "Error during marshalling", http.StatusInternalServerError)
 		return
@@ -68,20 +60,4 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tools.Encode(w, c)
-}
-
-func isCountryCode(search []string) (string, error) {
-	//Country name or alpha3.
-	//Converts string to lowercase before making the first letter uppercase to satisfy the graphql api search parameter
-	s := strings.Title(strings.ToLower(search[0]))
-	if len(s) == 3 {
-		//Issues a RESTCountries api request if input is alpha3.
-		//Returns the country name
-		country, err := tools.GetCountryByAlphaCode(s)
-		if err != nil {
-			return "", err
-		}
-		s = fmt.Sprint(country)
-	}
-	return s, nil
 }

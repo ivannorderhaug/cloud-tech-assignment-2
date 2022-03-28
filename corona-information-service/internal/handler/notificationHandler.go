@@ -30,6 +30,10 @@ func pathHandler(w http.ResponseWriter, r *http.Request) {
 	switch len(parts) {
 	//If length of parts is 4, then it means the user has wants all webhooks
 	case 4:
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
+			return
+		}
 		encodeAllWebhooks(w)
 
 	//If the length of parts is 5, then it means the user has specified webhook id in their request
@@ -75,8 +79,8 @@ func encodeSingleWebhook(w http.ResponseWriter, id string) {
 
 // encodeWebhookDeletionResponse */
 func encodeWebhookDeletionResponse(w http.ResponseWriter, id string) {
-	err := tools.DeleteWebhook(id)
-	if err != nil {
+	deleted, err := tools.DeleteWebhook(id)
+	if err != nil || !deleted {
 		http.Error(w, "Error removing webhook from database. it might not exist", http.StatusInternalServerError)
 		return
 	}

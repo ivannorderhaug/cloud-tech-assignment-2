@@ -12,7 +12,7 @@ const VERSION = "v1"
 // URLS TO INVOKE
 
 const CASES_URL = "https://covid19-graphql.vercel.app/"
-const STRINGENCY_URL = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/"
+const STRINGENCY_URL = "https://covidtrackerapi.bsg.ox.ac.uk/pkg/v2/stringency/actions/"
 
 // GRAPHQL
 
@@ -21,5 +21,5 @@ const QUERY = "query {\n  country(name: \"%s\") {\n    name\n    mostRecent {\n 
 // USED TO CHECK STATUS OF API
 
 const RESTCOUNTRIES_API = "https://restcountries.com/v3.1/all"
-const STRINGENCY_API = "https://covidtrackerapi.bsg.ox.ac.uk/api"
+const STRINGENCY_API = "https://covidtrackerapi.bsg.ox.ac.uk/pkg"
 const CASES_API = "https://covid19-graphql.vercel.app/?query=%7B__typename%7D"
