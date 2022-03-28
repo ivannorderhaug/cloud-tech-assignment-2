@@ -1,9 +1,5 @@
 package model
 
-type GraphQLRequest struct {
-	Query string `json:"query"`
-}
-
 // TmpCase Used to unwrap nested structure
 type TmpCase struct {
 	Data struct {

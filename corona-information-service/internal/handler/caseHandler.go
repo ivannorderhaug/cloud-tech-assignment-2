@@ -3,7 +3,6 @@ package handler
 import (
 	"corona-information-service/internal/model"
 	"corona-information-service/tools"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -22,13 +21,13 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	search, err := isCountryCode(path)
+	country, err := isCountryCode(path)
 	if err != nil {
 		http.Error(w, "Error getting country", http.StatusInternalServerError)
 		return
 	}
 
-	query, err := convertToGraphql(search)
+	query, err := tools.ConvertToGraphql(model.QUERY, country)
 	if err != nil {
 		http.Error(w, "Error during marshalling", http.StatusInternalServerError)
 		return
@@ -85,15 +84,4 @@ func isCountryCode(search []string) (string, error) {
 		s = fmt.Sprint(country)
 	}
 	return s, nil
-}
-
-func convertToGraphql(search string) ([]byte, error) {
-	//Formats query
-	query := fmt.Sprintf(model.QUERY, search)
-
-	jsonQuery, err := json.Marshal(model.GraphQLRequest{Query: query})
-	if err != nil {
-		return nil, err
-	}
-	return jsonQuery, nil
 }
