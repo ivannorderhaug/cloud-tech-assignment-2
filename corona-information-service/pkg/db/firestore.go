@@ -11,6 +11,8 @@ import (
 var ctx context.Context
 var client *firestore.Client
 
+const DELETE = "DELETE"
+
 // InitializeFirestore Method for initializing the firestore client */
 func InitializeFirestore() error {
 	// Firebase initialisation
@@ -82,7 +84,7 @@ func DeleteSingleDocumentFromFirestore(collectionName string, documentID string)
 
 // UpdateDocument updates a document in the firestore database. If value = "DELETE", then it'll delete that field from the document.
 func UpdateDocument(collectionName string, documentID string, path string, value interface{}) error {
-	if value == "DELETE" {
+	if value == DELETE {
 		value = firestore.Delete
 	}
 	_, err := client.Collection(collectionName).Doc(documentID).Update(ctx, []firestore.Update{

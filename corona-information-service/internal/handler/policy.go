@@ -3,6 +3,7 @@ package handler
 import (
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/api"
+	"corona-information-service/pkg/cache"
 	"corona-information-service/tools"
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
@@ -12,6 +13,8 @@ import (
 	"strings"
 	"time"
 )
+
+var policies = cache.NewNestedMap()
 
 // PolicyHandler */
 func PolicyHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +45,12 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//Checks if policy with given date and alpha3 exists in cache, If it exists, it gets encoded
+	if p := cache.GetNestedMap(policies, cc, date); p != nil {
+		customjson.Encode(w, p)
+		return
+	}
+
 	//Issues request, decodes it and returns a struct
 	covidPolicy, err := getCovidPolicy(cc, date)
 	if err != nil {
@@ -49,11 +58,15 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Adds search to cache
+	cache.PutNestedMap(policies, cc, date, covidPolicy)
+
 	//Failed webhook routine doesn't need error handling
 	go func() {
 		country, err := api.GetCountryNameByAlphaCode(cc)
 		if err != nil {
 			fmt.Println("Couldn't retrieve country name")
+			return
 		}
 		_ = webhook.RunWebhookRoutine(fmt.Sprint(country))
 	}()

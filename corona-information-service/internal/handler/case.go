@@ -2,14 +2,19 @@ package handler
 
 import (
 	"corona-information-service/internal/model"
+	"corona-information-service/pkg/api"
+	"corona-information-service/pkg/cache"
 	"corona-information-service/tools"
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
 	"corona-information-service/tools/graphql"
 	"corona-information-service/tools/webhook"
+	"fmt"
 	"net/http"
 	"strings"
 )
+
+var cases = cache.New()
 
 // CaseHandler */
 func CaseHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +32,22 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	//Handle spaces
 	country := strings.Replace(path[0], " ", "%20", -1)
 
+	if len(country) == 3 {
+		alpha3ToCountry, err := api.GetCountryNameByAlphaCode(country)
+		if err != nil {
+			http.Error(w, "Error retrieving country by country code", http.StatusInternalServerError)
+			return
+		}
+		country = fmt.Sprint(alpha3ToCountry)
+	}
+
 	if len(country) != 2 {
 		country = strings.Title(strings.ToLower(country))
+	}
+
+	if c := cache.Get(cases, country); c != nil {
+		customjson.Encode(w, c)
+		return
 	}
 
 	query, err := graphql.ConvertToGraphql(model.QUERY, country)
@@ -71,5 +90,6 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		GrowthRate:     info.GrowthRate,
 	}
 
+	cache.Put(cases, country, c)
 	customjson.Encode(w, c)
 }
