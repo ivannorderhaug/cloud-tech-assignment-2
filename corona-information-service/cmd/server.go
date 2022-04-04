@@ -19,7 +19,7 @@ func main() {
 		port = "8080"
 	}
 
-	//Initializes firestore client, if it fails then the pkg should still work, but without notifications/webhooks
+	//Initializes firestore client, if it fails then the API should still work, but without notifications/webhooks
 	err := db.InitializeFirestore()
 	if err == nil {
 		tools.InitializeWebhooks()

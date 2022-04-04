@@ -2,6 +2,7 @@ package handler
 
 import (
 	"corona-information-service/internal/model"
+	"corona-information-service/pkg/api"
 	"corona-information-service/tools"
 	"fmt"
 	"net/http"
@@ -45,6 +46,15 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Failed webhook routine doesn't need error handling
+	go func() {
+		country, err := api.GetCountryNameByAlphaCode(cc)
+		if err != nil {
+			fmt.Println("Couldn't retrieve country name")
+		}
+		_ = tools.RunWebhookRoutine(fmt.Sprint(country))
+	}()
+
 	//Encodes struct
 	tools.Encode(w, covidPolicy)
 }
@@ -52,7 +62,7 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 // getCovidPolicy Issues request to external API, decodes response into a struct, maps it correctly and returns it
 func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
 	url := fmt.Sprintf("%s%s/%s", model.STRINGENCY_URL, alpha3, date)
-
+	
 	res, err := tools.IssueRequest(http.MethodGet, url, nil) //returns response
 	if err != nil {
 		return model.Policy{}, err
