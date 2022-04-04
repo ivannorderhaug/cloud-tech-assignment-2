@@ -7,20 +7,14 @@ func New() map[string]interface{} {
 
 // Get item from cache using key
 func Get(cache map[string]interface{}, key string) interface{} {
-	return cache[key]
+	val, exist := cache[key]
+	if !exist {
+		return nil
+	}
+	return val
 }
 
 // Put value in cache by using key
 func Put(cache map[string]interface{}, key, value string) {
 	cache[key] = value
-}
-
-// Contains will search the cache for the specified key
-func Contains(cache map[string]interface{}, key string) bool {
-	for k, _ := range cache {
-		if k == key {
-			return true
-		}
-	}
-	return false
 }
