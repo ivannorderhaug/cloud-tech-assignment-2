@@ -80,12 +80,15 @@ func DeleteSingleDocumentFromFirestore(collectionName string, documentID string)
 	return nil
 }
 
-// UpdateDocument */
-func UpdateDocument(collectionName string, documentID string, path string, newValue interface{}) error {
+// UpdateDocument updates a document in the firestore database. If value = "DELETE", then it'll delete that field from the document.
+func UpdateDocument(collectionName string, documentID string, path string, value interface{}) error {
+	if value == "DELETE" {
+		value = firestore.Delete
+	}
 	_, err := client.Collection(collectionName).Doc(documentID).Update(ctx, []firestore.Update{
 		{
 			Path:  path,
-			Value: newValue,
+			Value: value,
 		},
 	})
 	if err != nil {
