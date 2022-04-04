@@ -2,7 +2,9 @@ package handler
 
 import (
 	"corona-information-service/internal/model"
-	"corona-information-service/tools"
+	"corona-information-service/tools/customhttp"
+	"corona-information-service/tools/customjson"
+	"corona-information-service/tools/webhook"
 	"net/http"
 	"time"
 )
@@ -22,26 +24,26 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	casesApi, err := tools.IssueRequest(http.MethodGet, model.CASES_API, nil)
+	casesApi, err := customhttp.IssueRequest(http.MethodGet, model.CASES_API, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	policyApi, err := tools.IssueRequest(http.MethodHead, model.STRINGENCY_API, nil)
+	policyApi, err := customhttp.IssueRequest(http.MethodHead, model.STRINGENCY_API, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	restCountriesApi, err := tools.IssueRequest(http.MethodHead, model.RESTCOUNTRIES_API, nil)
+	restCountriesApi, err := customhttp.IssueRequest(http.MethodHead, model.RESTCOUNTRIES_API, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
 	webhooksCount := 0
-	webhooks, err := tools.GetAllWebhooks()
+	webhooks, err := webhook.GetAllWebhooks()
 	if err == nil {
 		webhooksCount = len(webhooks)
 	}
@@ -55,6 +57,6 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		Uptime:        int(getUptime().Seconds()),
 	}
 
-	tools.Encode(w, status)
+	customjson.Encode(w, status)
 
 }

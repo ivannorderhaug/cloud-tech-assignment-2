@@ -4,6 +4,9 @@ import (
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/api"
 	"corona-information-service/tools"
+	"corona-information-service/tools/customhttp"
+	"corona-information-service/tools/customjson"
+	"corona-information-service/tools/webhook"
 	"fmt"
 	"net/http"
 	"strings"
@@ -52,25 +55,25 @@ func PolicyHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println("Couldn't retrieve country name")
 		}
-		_ = tools.RunWebhookRoutine(fmt.Sprint(country))
+		_ = webhook.RunWebhookRoutine(fmt.Sprint(country))
 	}()
 
 	//Encodes struct
-	tools.Encode(w, covidPolicy)
+	customjson.Encode(w, covidPolicy)
 }
 
 // getCovidPolicy Issues request to external API, decodes response into a struct, maps it correctly and returns it
 func getCovidPolicy(alpha3 string, date string) (model.Policy, error) {
 	url := fmt.Sprintf("%s%s/%s", model.STRINGENCY_URL, alpha3, date)
-	
-	res, err := tools.IssueRequest(http.MethodGet, url, nil) //returns response
+
+	res, err := customhttp.IssueRequest(http.MethodGet, url, nil) //returns response
 	if err != nil {
 		return model.Policy{}, err
 	}
 
 	var data model.TmpPolicy
 
-	err = tools.Decode(res, &data)
+	err = customjson.Decode(res, &data)
 	if err != nil {
 		return model.Policy{}, err
 	} //returns decoded wrapper for stringency and policy data

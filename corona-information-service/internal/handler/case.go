@@ -3,6 +3,10 @@ package handler
 import (
 	"corona-information-service/internal/model"
 	"corona-information-service/tools"
+	"corona-information-service/tools/customhttp"
+	"corona-information-service/tools/customjson"
+	"corona-information-service/tools/graphql"
+	"corona-information-service/tools/webhook"
 	"net/http"
 	"strings"
 )
@@ -27,13 +31,13 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		country = strings.Title(strings.ToLower(country))
 	}
 
-	query, err := tools.ConvertToGraphql(model.QUERY, country)
+	query, err := graphql.ConvertToGraphql(model.QUERY, country)
 	if err != nil {
 		http.Error(w, "Error during marshalling", http.StatusInternalServerError)
 		return
 	}
 
-	res, err := tools.IssueRequest(http.MethodPost, model.CASES_URL, query)
+	res, err := customhttp.IssueRequest(http.MethodPost, model.CASES_URL, query)
 	if err != nil {
 		http.Error(w, "Error issuing the request", http.StatusInternalServerError)
 		return
@@ -41,7 +45,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	var tmpCase model.TmpCase
 
-	err = tools.Decode(res, &tmpCase)
+	err = customjson.Decode(res, &tmpCase)
 	if err != nil {
 		http.Error(w, "Error during decoding", http.StatusInternalServerError)
 		return
@@ -54,7 +58,7 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	//Failed webhook routine doesn't need error handling
 	go func() {
-		_ = tools.RunWebhookRoutine(tmpCase.Data.Country.Name)
+		_ = webhook.RunWebhookRoutine(tmpCase.Data.Country.Name)
 	}()
 
 	info := tmpCase.Data.Country.MostRecent
@@ -67,5 +71,5 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		GrowthRate:     info.GrowthRate,
 	}
 
-	tools.Encode(w, c)
+	customjson.Encode(w, c)
 }

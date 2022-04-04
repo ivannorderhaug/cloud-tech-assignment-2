@@ -1,10 +1,12 @@
-package tools
+package webhook
 
 import (
 	"bytes"
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/api"
 	"corona-information-service/pkg/db"
+	"corona-information-service/tools/customjson"
+	"corona-information-service/tools/hash"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -36,7 +38,7 @@ func GetWebhook(webhookId string) (model.Webhook, bool) {
 
 // GetAllWebhooks */
 func GetAllWebhooks() ([]model.Webhook, error) {
-	documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(Hash([]byte(COLLECTION)))
+	documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(hash.Hash([]byte(COLLECTION)))
 	if err != nil {
 		return []model.Webhook{}, err
 	}
@@ -67,7 +69,7 @@ func DeleteWebhook(webhookId string) (bool, error) {
 		}
 	}
 
-	if err := db.DeleteSingleDocumentFromFirestore(Hash([]byte(COLLECTION)), Hash([]byte(webhookId))); err != nil {
+	if err := db.DeleteSingleDocumentFromFirestore(hash.Hash([]byte(COLLECTION)), hash.Hash([]byte(webhookId))); err != nil {
 		return false, err
 	}
 
@@ -78,7 +80,7 @@ func DeleteWebhook(webhookId string) (bool, error) {
 func RegisterWebhook(r *http.Request) (map[string]string, error) {
 	var webhook model.Webhook
 
-	err := Decode(r, &webhook)
+	err := customjson.Decode(r, &webhook)
 	if err != nil {
 		return map[string]string{}, err
 	}
@@ -95,7 +97,7 @@ func RegisterWebhook(r *http.Request) (map[string]string, error) {
 	id := autoId()
 	webhook.ID = id
 	//Adds webhook to database, return documentID which will be used as webhookId
-	err = db.AddToFirestore(Hash([]byte(COLLECTION)), Hash([]byte(id)), webhook)
+	err = db.AddToFirestore(hash.Hash([]byte(COLLECTION)), hash.Hash([]byte(id)), webhook)
 	if err != nil {
 		return map[string]string{}, err
 	}
@@ -118,7 +120,7 @@ func RunWebhookRoutine(country string) error {
 			webhooks[i].ActualCalls = webhook.ActualCalls
 
 			//Updates webhook in db
-			err := db.UpdateDocument(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
+			err := db.UpdateDocument(hash.Hash([]byte(COLLECTION)), hash.Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
 			if err != nil {
 				return err
 			}
@@ -127,7 +129,7 @@ func RunWebhookRoutine(country string) error {
 				webhook.ActualCalls = 0
 
 				//Updates webhook in db
-				err = db.UpdateDocument(Hash([]byte(COLLECTION)), Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
+				err = db.UpdateDocument(hash.Hash([]byte(COLLECTION)), hash.Hash([]byte(webhook.ID)), "actual_calls", webhook.ActualCalls)
 				if err != nil {
 					return err
 				}

@@ -4,7 +4,7 @@ import (
 	"corona-information-service/internal/handler"
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/db"
-	"corona-information-service/tools"
+	"corona-information-service/tools/webhook"
 	"log"
 	"net/http"
 	"os"
@@ -22,7 +22,7 @@ func main() {
 	//Initializes firestore client, if it fails then the API should still work, but without notifications/webhooks
 	err := db.InitializeFirestore()
 	if err == nil {
-		tools.InitializeWebhooks()
+		webhook.InitializeWebhooks()
 		http.HandleFunc(model.NOTIFICATION_PATH, handler.NotificationHandler)
 		http.HandleFunc(strings.TrimSuffix(model.NOTIFICATION_PATH, "/"), handler.NotificationHandler) //Will be forgiving since some forget "/" at the end
 	}

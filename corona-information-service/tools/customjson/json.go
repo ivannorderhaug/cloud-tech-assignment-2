@@ -1,4 +1,4 @@
-package tools
+package customjson
 
 import (
 	"encoding/json"
