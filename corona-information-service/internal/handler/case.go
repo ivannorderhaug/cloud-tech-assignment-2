@@ -4,6 +4,7 @@ import (
 	"corona-information-service/internal/model"
 	"corona-information-service/tools"
 	"net/http"
+	"strings"
 )
 
 // CaseHandler */
@@ -19,7 +20,12 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, err := tools.ConvertToGraphql(model.QUERY, path[0])
+	country := path[0]
+	if len(country) != 2 {
+		country = strings.Title(strings.ToLower(country))
+	}
+
+	query, err := tools.ConvertToGraphql(model.QUERY, country)
 	if err != nil {
 		http.Error(w, "Error during marshalling", http.StatusInternalServerError)
 		return
