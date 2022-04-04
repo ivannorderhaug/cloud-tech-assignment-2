@@ -14,3 +14,13 @@ func Get(cache map[string]interface{}, key string) interface{} {
 func Put(cache map[string]interface{}, key, value string) {
 	cache[key] = value
 }
+
+// Contains will search the cache for the specified key
+func Contains(cache map[string]interface{}, key string) bool {
+	for k, _ := range cache {
+		if k == key {
+			return true
+		}
+	}
+	return false
+}
