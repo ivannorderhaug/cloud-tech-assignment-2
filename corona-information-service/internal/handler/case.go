@@ -20,7 +20,9 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	country := path[0]
+	//Handle spaces
+	country := strings.Replace(path[0], " ", "%20", -1)
+
 	if len(country) != 2 {
 		country = strings.Title(strings.ToLower(country))
 	}
