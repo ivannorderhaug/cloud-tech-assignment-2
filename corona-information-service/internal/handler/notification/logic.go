@@ -1,4 +1,4 @@
-package handler
+package _notification
 
 import (
 	"corona-information-service/tools/customjson"
@@ -7,24 +7,8 @@ import (
 	"strings"
 )
 
-// NotificationHandler */
-func NotificationHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		response, err := webhook.RegisterWebhook(r)
-		if err != nil {
-			http.Error(w, "Error in registering webhook", http.StatusInternalServerError)
-			return
-		}
-		customjson.Encode(w, response)
-	}
-
-	if r.Method == http.MethodGet || r.Method == http.MethodDelete {
-		pathHandler(w, r)
-	}
-}
-
-// pathHandler */
-func pathHandler(w http.ResponseWriter, r *http.Request) {
+// methodHandler */
+func methodHandler(w http.ResponseWriter, r *http.Request) {
 	//Splits url into parts
 	parts := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
 

@@ -3,6 +3,7 @@ package main
 import (
 	"corona-information-service/internal/handler"
 	"corona-information-service/internal/handler/case"
+	"corona-information-service/internal/handler/notification"
 	"corona-information-service/internal/handler/policy"
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/db"
@@ -25,8 +26,8 @@ func main() {
 	err := db.InitializeFirestore()
 	if err == nil {
 		webhook.InitializeWebhooks()
-		http.HandleFunc(model.NOTIFICATION_PATH, handler.NotificationHandler)
-		http.HandleFunc(strings.TrimSuffix(model.NOTIFICATION_PATH, "/"), handler.NotificationHandler) //Will be forgiving since some forget "/" at the end
+		http.HandleFunc(model.NOTIFICATION_PATH, _notification.NotificationHandler)
+		http.HandleFunc(strings.TrimSuffix(model.NOTIFICATION_PATH, "/"), _notification.NotificationHandler) //Will be forgiving since some forget "/" at the end
 	}
 
 	// Set up handler endpoints
