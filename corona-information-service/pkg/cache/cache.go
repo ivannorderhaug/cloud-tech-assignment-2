@@ -1,5 +1,11 @@
 package cache
 
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
+
 // New returns a new empty map
 func New() map[string]interface{} {
 	return make(map[string]interface{}, 0)
@@ -41,4 +47,17 @@ func PutNestedMap(cache map[string]map[string]interface{}, key1 string, key2 str
 		cache[key1] = inner
 	}
 	inner[key2] = value
+}
+
+// PurgeByDate deletes every key-value pair in a map where the dates are not equal
+func PurgeByDate(cache map[string]interface{}, date string) {
+	for k, v := range cache {
+		rv := reflect.ValueOf(v)
+		p := rv.FieldByName("Scope")
+		date2 := fmt.Sprint(p)
+		if !strings.EqualFold(date, date2) {
+			delete(cache, k)
+		}
+	}
+
 }

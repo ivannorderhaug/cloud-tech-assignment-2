@@ -12,15 +12,23 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var cases = cache.New()
+
+//Bool used to make sure the purge routine is only run once
+var t = false
 
 // CaseHandler */
 func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
 		return
+	}
+
+	if !t {
+		runPurgeRoutine()
 	}
 
 	path, ok := tools.PathSplitter(r.URL.Path, 1)
@@ -92,4 +100,18 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 
 	cache.Put(cases, country, c)
 	customjson.Encode(w, c)
+}
+
+//Purges cache every 8 hours as the external case API is updated three times a day
+func runPurgeRoutine() {
+	t = true
+	ticker := time.NewTicker(8 * time.Hour)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				cache.PurgeByDate(cases, fmt.Sprintf(time.Now().Format("2006-01-02")))
+			}
+		}
+	}()
 }
