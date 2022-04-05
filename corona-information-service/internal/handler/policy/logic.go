@@ -2,10 +2,12 @@ package _policy
 
 import (
 	"corona-information-service/internal/model"
+	"corona-information-service/pkg/api"
 	"corona-information-service/pkg/cache"
 	"corona-information-service/tools"
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
+	"corona-information-service/tools/webhook"
 	"errors"
 	"fmt"
 	"net/http"
@@ -89,4 +91,15 @@ func getCountryCode(r *http.Request) (string, error, int) {
 	}
 
 	return cc, nil, 0
+}
+
+func runWebhookRoutine(cc string) {
+	go func() {
+		country, err := api.GetCountryNameByAlphaCode(cc)
+		if err != nil {
+			fmt.Println("Couldn't retrieve country name")
+			return
+		}
+		_ = webhook.RunWebhookRoutine(fmt.Sprint(country))
+	}()
 }

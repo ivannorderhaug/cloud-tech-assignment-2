@@ -3,6 +3,7 @@ package _case
 import (
 	"corona-information-service/pkg/cache"
 	"corona-information-service/tools/customjson"
+	"corona-information-service/tools/webhook"
 	"net/http"
 )
 
@@ -24,6 +25,10 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c := cache.Get(cases, country); c != nil {
+		//Failed webhook routine doesn't need error handling
+		go func() {
+			_ = webhook.RunWebhookRoutine(country)
+		}()
 		customjson.Encode(w, c)
 		return
 	}

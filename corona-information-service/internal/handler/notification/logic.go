@@ -54,12 +54,12 @@ func encodeAllWebhooks(w http.ResponseWriter) {
 
 // encodeSingleWebhook */
 func encodeSingleWebhook(w http.ResponseWriter, id string) {
-	webhook, found := webhook.GetWebhook(id)
+	wh, found := webhook.GetWebhook(id)
 	if !found {
 		http.Error(w, "Unable to locate webhook in database", http.StatusNotFound)
 		return
 	}
-	customjson.Encode(w, webhook)
+	customjson.Encode(w, wh)
 }
 
 // encodeWebhookDeletionResponse */
