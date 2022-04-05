@@ -9,15 +9,6 @@ type Case struct {
 	GrowthRate     float64 `json:"growth_rate"`
 }
 
-// TmpPolicy Used to unwrap nested structure
-type TmpPolicy struct {
-	StringencyData struct {
-		Stringency       float64 `json:"stringency"`
-		StringencyActual float64 `json:"stringency_actual,omitempty"`
-	} `json:"stringencyData"`
-	PolicyActions []interface{} `json:"policyActions"`
-}
-
 type Policy struct {
 	CountryCode string      `json:"country_code"`
 	Scope       string      `json:"scope"`

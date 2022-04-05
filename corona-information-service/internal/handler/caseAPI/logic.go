@@ -1,4 +1,4 @@
-package cases
+package caseAPI
 
 import (
 	"corona-information-service/internal/model"
@@ -8,6 +8,7 @@ import (
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
 	"corona-information-service/tools/graphql"
+	"corona-information-service/tools/webhook"
 	"errors"
 	"fmt"
 	"net/http"
@@ -103,6 +104,11 @@ func mapResponseToStruct(res *http.Response) (model.Case, error, int) {
 	if len(tmpCase.Data.Country.Name) == 0 {
 		return model.Case{}, errors.New("could not find a country with that name"), http.StatusNotFound
 	}
+
+	//Failed webhook routine doesn't need error handling
+	go func() {
+		_ = webhook.RunWebhookRoutine(tmpCase.Data.Country.Name)
+	}()
 
 	info := tmpCase.Data.Country.MostRecent
 	c := model.Case{

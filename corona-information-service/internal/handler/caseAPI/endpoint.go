@@ -1,4 +1,4 @@
-package cases
+package caseAPI
 
 import (
 	"corona-information-service/pkg/cache"
