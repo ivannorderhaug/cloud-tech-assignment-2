@@ -1,7 +1,8 @@
-package policyAPI
+package _policy
 
 import (
 	"corona-information-service/internal/model"
+	"corona-information-service/pkg/cache"
 	"corona-information-service/tools"
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
@@ -11,6 +12,8 @@ import (
 	"strings"
 	"time"
 )
+
+var policies = cache.NewNestedMap()
 
 // issueRequest Issues request to external API, decodes response into a struct, maps it correctly and returns it
 func issueRequest(alpha3 string, date string) (*http.Response, error) {

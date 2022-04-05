@@ -1,4 +1,4 @@
-package policyAPI
+package _policy
 
 import (
 	"corona-information-service/pkg/api"
@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"net/http"
 )
-
-var policies = cache.NewNestedMap()
 
 // PolicyHandler */
 func PolicyHandler(w http.ResponseWriter, r *http.Request) {
