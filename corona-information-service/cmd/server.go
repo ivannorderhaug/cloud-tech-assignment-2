@@ -2,6 +2,7 @@ package main
 
 import (
 	"corona-information-service/internal/handler"
+	"corona-information-service/internal/handler/cases"
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/db"
 	"corona-information-service/tools/webhook"
@@ -29,7 +30,7 @@ func main() {
 
 	// Set up handler endpoints
 	http.HandleFunc(model.DEFAULT_PATH, handler.DefaultHandler)
-	http.HandleFunc(model.CASE_PATH, handler.CaseHandler)
+	http.HandleFunc(model.CASE_PATH, cases.CaseHandler)
 	http.HandleFunc(model.POLICY_PATH, handler.PolicyHandler)
 	http.HandleFunc(model.STATUS_PATH, handler.StatusHandler)
 

@@ -1,21 +1,5 @@
 package model
 
-// TmpCase Used to unwrap nested structure
-type TmpCase struct {
-	Data struct {
-		Country struct {
-			Name       string `json:"name"`
-			MostRecent struct {
-				Date       string  `json:"date"`
-				Confirmed  int     `json:"confirmed"`
-				Recovered  int     `json:"recovered"`
-				Deaths     int     `json:"deaths"`
-				GrowthRate float64 `json:"growthRate"`
-			} `json:"mostRecent"`
-		} `json:"country"`
-	} `json:"data"`
-}
-
 type Case struct {
 	Country        string  `json:"country"`
 	Date           string  `json:"date"`
