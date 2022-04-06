@@ -5,6 +5,7 @@ import (
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
 	"corona-information-service/tools/webhook"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -23,24 +24,27 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
 		return
 	}
+	//Declare vars
+	var casesApiStatus, policyApiStatus, restCountriesApiStatus string
 
+	//Requests
 	casesApi, err := customhttp.IssueRequest(http.MethodGet, model.CASES_API, nil)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
-		return
+		casesApiStatus = fmt.Sprintf("%s %s", http.StatusFailedDependency, http.StatusText(http.StatusFailedDependency))
 	}
-
 	policyApi, err := customhttp.IssueRequest(http.MethodHead, model.STRINGENCY_API, nil)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
-		return
+		policyApiStatus = fmt.Sprintf("%s %s", http.StatusFailedDependency, http.StatusText(http.StatusFailedDependency))
+	}
+	restCountriesApi, err := customhttp.IssueRequest(http.MethodGet, model.RESTCOUNTRIES_API, nil)
+	if err != nil {
+		restCountriesApiStatus = fmt.Sprintf("%s %s", http.StatusFailedDependency, http.StatusText(http.StatusFailedDependency))
 	}
 
-	restCountriesApi, err := customhttp.IssueRequest(http.MethodHead, model.RESTCOUNTRIES_API, nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
-		return
-	}
+	//Statuses
+	casesApiStatus = casesApi.Status
+	policyApiStatus = policyApi.Status
+	restCountriesApiStatus = restCountriesApi.Status
 
 	webhooksCount := 0
 	webhooks, err := webhook.GetAllWebhooks()
@@ -49,9 +53,9 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status := model.Status{
-		CasesApi:      casesApi.Status,
-		PolicyApi:     policyApi.Status,
-		RestCountries: restCountriesApi.Status,
+		CasesApi:      casesApiStatus,
+		PolicyApi:     policyApiStatus,
+		RestCountries: restCountriesApiStatus,
 		Webhooks:      webhooksCount,
 		Version:       model.VERSION,
 		Uptime:        int(getUptime().Seconds()),
