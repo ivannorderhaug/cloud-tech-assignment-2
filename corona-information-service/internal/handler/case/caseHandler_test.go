@@ -48,9 +48,9 @@ func TestGetCase(t *testing.T) {
 	}
 
 	t.Run(tests[0].name, func(t *testing.T) {
-		defer tests[0].server.Client()
+		defer tests[0].server.Close()
 
-		res, err := getCase(tests[0].server.URL, "Norway")
+		res, err := getCase(tests[0].server.URL, "")
 
 		if !reflect.DeepEqual(res, tests[0].response) {
 			t.Errorf("FAILED: expected %v, got %v\n", tests[0].response, res)
@@ -61,9 +61,9 @@ func TestGetCase(t *testing.T) {
 	})
 
 	t.Run(tests[1].name, func(t *testing.T) {
-		defer tests[1].server.Client()
+		defer tests[1].server.Close()
 
-		res, err := getCase(tests[1].server.URL, "Norway")
+		res, err := getCase(tests[1].server.URL, "")
 
 		if !reflect.DeepEqual(res, tests[1].response) {
 			t.Errorf("FAILED: expected %v, got %v\n", tests[1].response, res)
