@@ -48,9 +48,14 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := getCase(country)
+	c, err := getCase(model.CASES_URL, country)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if c == nil {
+		http.Error(w, "could not find a country with that name", http.StatusNotFound)
 		return
 	}
 
@@ -108,13 +113,13 @@ func runPurgeRoutine() {
 }
 
 // getCase uses country name to issue a request, map the response into the required struct and return its reference
-func getCase(country string) (*model.Case, error) {
+func getCase(url, country string) (*model.Case, error) {
 	query, err := graphql.ConvertToGraphql(model.QUERY, country)
 	if err != nil {
 		return nil, errors.New("error during marshalling")
 	}
 
-	res, err := customhttp.IssueRequest(http.MethodPost, model.CASES_URL, query)
+	res, err := customhttp.IssueRequest(http.MethodPost, url, query)
 	if err != nil {
 		return nil, errors.New("error issuing the request")
 	}
@@ -141,7 +146,7 @@ func getCase(country string) (*model.Case, error) {
 	}
 
 	if len(tmpCase.Data.Country.Name) == 0 {
-		return nil, errors.New("could not find a country with that name")
+		return nil, nil
 	}
 
 	info := tmpCase.Data.Country.MostRecent
