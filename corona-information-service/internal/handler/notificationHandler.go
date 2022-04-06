@@ -1,4 +1,4 @@
-package _notification
+package handler
 
 import (
 	"corona-information-service/tools/customjson"
@@ -6,6 +6,22 @@ import (
 	"net/http"
 	"strings"
 )
+
+// NotificationHandler */
+func NotificationHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		response, err := webhook.RegisterWebhook(r)
+		if err != nil {
+			http.Error(w, "Error in registering webhook", http.StatusInternalServerError)
+			return
+		}
+		customjson.Encode(w, response)
+	}
+
+	if r.Method == http.MethodGet || r.Method == http.MethodDelete {
+		methodHandler(w, r)
+	}
+}
 
 // methodHandler */
 func methodHandler(w http.ResponseWriter, r *http.Request) {

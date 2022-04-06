@@ -8,6 +8,7 @@ import (
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
 	"corona-information-service/tools/graphql"
+	"corona-information-service/tools/webhook"
 	"errors"
 	"fmt"
 	"net/http"
@@ -20,6 +21,54 @@ var cases = cache.New()
 
 //Bool used to make sure the purge routine is only run once
 var t = false
+
+// CaseHandler */
+func CaseHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
+		return
+	}
+
+	if !t {
+		runPurgeRoutine()
+	}
+
+	country, err := getCountry(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if c := cache.Get(cases, country); c != nil {
+		//Failed webhook routine doesn't need error handling
+		go func() {
+			_ = webhook.RunWebhookRoutine(country)
+		}()
+		customjson.Encode(w, c)
+		return
+	}
+
+	res, err := issueGraphqlRequest(country)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	c, err, status := mapResponseToStruct(res)
+	if err != nil {
+		http.Error(w, err.Error(), status)
+		return
+	}
+
+	//Failed webhook routine doesn't need error handling
+	go func() {
+		_ = webhook.RunWebhookRoutine(c.Country)
+	}()
+
+	cache.Put(cases, c.Country, c)
+
+	customjson.Encode(w, c)
+}
 
 // getCountry handles search, converts alpha3 to country name if necessary and returns country name
 func getCountry(r *http.Request) (string, error) {
@@ -116,5 +165,4 @@ func mapResponseToStruct(res *http.Response) (model.Case, error, int) {
 	}
 
 	return c, nil, 0
-
 }
