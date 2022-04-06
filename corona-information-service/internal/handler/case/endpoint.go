@@ -45,5 +45,12 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//Failed webhook routine doesn't need error handling
+	go func() {
+		_ = webhook.RunWebhookRoutine(c.Country)
+	}()
+
+	cache.Put(cases, c.Country, c)
+
 	customjson.Encode(w, c)
 }

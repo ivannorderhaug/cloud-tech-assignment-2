@@ -8,7 +8,6 @@ import (
 	"corona-information-service/tools/customhttp"
 	"corona-information-service/tools/customjson"
 	"corona-information-service/tools/graphql"
-	"corona-information-service/tools/webhook"
 	"errors"
 	"fmt"
 	"net/http"
@@ -41,6 +40,7 @@ func getCountry(r *http.Request) (string, error) {
 		country = fmt.Sprint(alpha3ToCountry)
 	}
 
+	//Handle US edge case
 	if len(country) != 2 {
 		country = strings.Title(strings.ToLower(country))
 	}
@@ -48,11 +48,11 @@ func getCountry(r *http.Request) (string, error) {
 	return country, nil
 }
 
-//Purges cache every 8 hours as the external cases API is updated three times a day
+//Purges cache every 8 hours as the external case API is updated three times a day
 func runPurgeRoutine() {
 	t = true
 
-	ticker := time.NewTicker(12 * time.Hour)
+	ticker := time.NewTicker(8 * time.Hour)
 
 	go func() {
 		for {
@@ -105,11 +105,6 @@ func mapResponseToStruct(res *http.Response) (model.Case, error, int) {
 		return model.Case{}, errors.New("could not find a country with that name"), http.StatusNotFound
 	}
 
-	//Failed webhook routine doesn't need error handling
-	go func() {
-		_ = webhook.RunWebhookRoutine(tmpCase.Data.Country.Name)
-	}()
-
 	info := tmpCase.Data.Country.MostRecent
 	c := model.Case{
 		Country:        tmpCase.Data.Country.Name,
@@ -119,8 +114,6 @@ func mapResponseToStruct(res *http.Response) (model.Case, error, int) {
 		Deaths:         info.Deaths,
 		GrowthRate:     info.GrowthRate,
 	}
-
-	cache.Put(cases, c.Country, c)
 
 	return c, nil, 0
 
