@@ -48,15 +48,9 @@ func CaseHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := issueGraphqlRequest(country)
+	c, err := getCase(country)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	c, err, status := mapResponseToStruct(res)
-	if err != nil {
-		http.Error(w, err.Error(), status)
 		return
 	}
 
@@ -113,8 +107,8 @@ func runPurgeRoutine() {
 	}()
 }
 
-//issueGraphqlRequest uses country name to convert it into a graphql request and issues the request. Returns response
-func issueGraphqlRequest(country string) (*http.Response, error) {
+// getCase uses country name to issue a request, map the response into the required struct and return its reference
+func getCase(country string) (*model.Case, error) {
 	query, err := graphql.ConvertToGraphql(model.QUERY, country)
 	if err != nil {
 		return nil, errors.New("error during marshalling")
@@ -124,11 +118,7 @@ func issueGraphqlRequest(country string) (*http.Response, error) {
 	if err != nil {
 		return nil, errors.New("error issuing the request")
 	}
-	return res, nil
-}
 
-//mapResponseToStruct maps the response from the graphql request into a temp struct, proceeds to map from the temp struct into the correct one.
-func mapResponseToStruct(res *http.Response) (model.Case, error, int) {
 	// TmpCase Used to unwrap nested structure
 	var tmpCase struct {
 		Data struct {
@@ -145,13 +135,13 @@ func mapResponseToStruct(res *http.Response) (model.Case, error, int) {
 		} `json:"data"`
 	}
 
-	err := customjson.Decode(res, &tmpCase)
+	err = customjson.Decode(res, &tmpCase)
 	if err != nil {
-		return model.Case{}, errors.New("error during decoding"), http.StatusInternalServerError
+		return nil, errors.New("error during decoding")
 	}
 
 	if len(tmpCase.Data.Country.Name) == 0 {
-		return model.Case{}, errors.New("could not find a country with that name"), http.StatusNotFound
+		return nil, errors.New("could not find a country with that name")
 	}
 
 	info := tmpCase.Data.Country.MostRecent
@@ -164,5 +154,5 @@ func mapResponseToStruct(res *http.Response) (model.Case, error, int) {
 		GrowthRate:     info.GrowthRate,
 	}
 
-	return c, nil, 0
+	return &c, nil
 }
