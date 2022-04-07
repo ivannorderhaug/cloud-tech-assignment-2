@@ -1,92 +1,445 @@
-# assignment-2
+# ASSIGNMENT 2 - CORONA INFORMATION SERVICE
+
+## Assumptions
+
+*  Active policies: in issue [#41](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022/-/issues/41) it is stated that: 
+`The response is the simple variant - the number of active policies returned, nothing else.`. I interpret this as all the policies that gets returned, count as active. Even though some of them have "no measures" as value in the `policy_value_display_field`
 
 
+## Deployment
 
-## Getting started
+### Local service
+There a two ways to deploy this service locally. Either by cloning the repository  or downloading the .zip file.  
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022-workspace/ivann/assignment-2.git
-git branch -M main
-git push -uf origin main
+```bash
+git clone https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022-workspace/ivann/assignment-2-server.git
 ```
 
-## Integrate with your tools
+[DOWNLOAD](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022-workspace/ivann/assignment-2-server/-/archive/main/assignment-2-server-main.zip)
 
-- [ ] [Set up project integrations](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022-workspace/ivann/assignment-2/-/settings/integrations)
+#### After installation/cloning: ```simply run ./cmd/server.go ```
 
-## Collaborate with your team
+#### NOTE: By deploying the service locally, you lose access to the notification endpoint and the webhooks. To get access to them, please register [here](https://firebase.google.com/). Create a service account and put the .json file in the project folder --> (./corona-information-service) 
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### Hosted service
+There is a currently a running docker container for the service available at [10.212.136.78](10.212.136.78/). To access it, you must first connect to the NTNU VPN. Thereafter, you are free to use the service as you please.
 
-## Test and Deploy
+## Endpoints
+There are currently four endpoints available with the following resource paths:
+```
+/corona/v1/cases/
+/corona/v1/policy/
+/corona/v1/status/
+/corona/v1/notifications/
+```
 
-Use the built-in continuous integration in GitLab.
+### Covid-19 Cases per Country
+The initial endpoint focuses on return the latest number of confirmed cases and deaths for a given country, alongside growth rate of cases.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+#### - Request
+```
+Method: GET
+Path: /corona/v1/cases/{:country_name}
+```
+```{:country_name}``` refers to the name for the country as supported by the Covid 19 cases API or the ISO 3166-1 alpha-3 country code.
 
-***
+Example requests:  
+```/corona/v1/cases/Norway```   
+```/corona/v1/cases/NOR```
 
-# Editing this README
+#### - Response
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!).  Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+- Content type: ```application/json```
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Body (Example):
+```json
+{
+    "country": "Norway",
+    "date": "2022-03-05",
+    "confirmed": 1305006,
+    "recovered": 0,
+    "deaths": 1664,
+    "growth_rate": 0.004199149089414866
+}
+```
+#### Countries covered by the case endpoint. 
+The external API is extremely sensitive so make sure your search is correctly formatted.  
+CTRL+F to see if your desired country is covered.
+```json
+    "Bangladesh",
+    "Dominican Republic",
+    "Gambia",
+    "Guyana",
+    "Mauritius",
+    "Monaco",
+    "Algeria",
+    "Austria",
+    "Ukraine",
+    "Comoros",
+    "Congo (Kinshasa)",
+    "Holy See",
+    "Iran",
+    "Saudi Arabia",
+    "Winter Olympics 2022",
+    "Antigua and Barbuda",
+    "Belgium",
+    "Tanzania",
+    "Turkey",
+    "Vietnam",
+    "Armenia",
+    "Kiribati",
+    "Maldives",
+    "Nepal",
+    "Egypt",
+    "Jamaica",
+    "France",
+    "Korea, South",
+    "Latvia",
+    "Papua New Guinea",
+    "US",
+    "Barbados",
+    "Ethiopia",
+    "Central African Republic",
+    "Cyprus",
+    "Greece",
+    "Guatemala",
+    "Honduras",
+    "Japan",
+    "Albania",
+    "Brazil",
+    "Togo",
+    "Namibia",
+    "Pakistan",
+    "Serbia",
+    "Singapore",
+    "Lebanon",
+    "Liberia",
+    "Zimbabwe",
+    "Colombia",
+    "Trinidad and Tobago",
+    "Kazakhstan",
+    "Kuwait",
+    "Luxembourg",
+    "Netherlands",
+    "Qatar",
+    "Bulgaria",
+    "Burma",
+    "MS Zaandam",
+    "Peru",
+    "Saint Vincent and the Grenadines",
+    "Afghanistan",
+    "India",
+    "Chad",
+    "Diamond Princess",
+    "El Salvador",
+    "Belize",
+    "Cambodia",
+    "Laos",
+    "Malaysia",
+    "Syria",
+    "Thailand",
+    "Cabo Verde",
+    "Eritrea",
+    "Indonesia",
+    "Ireland",
+    "Jordan",
+    "Venezuela",
+    "Bhutan",
+    "Burkina Faso",
+    "China",
+    "Congo (Brazzaville)",
+    "Ecuador",
+    "Guinea-Bissau",
+    "Malta",
+    "Panama",
+    "Australia",
+    "Benin",
+    "Saint Lucia",
+    "Cuba",
+    "Sierra Leone",
+    "Slovakia",
+    "Gabon",
+    "Sao Tome and Principe",
+    "Finland",
+    "Hungary",
+    "Burundi",
+    "Chile",
+    "Montenegro",
+    "Spain",
+    "Costa Rica",
+    "Estonia",
+    "North Macedonia",
+    "Poland",
+    "Grenada",
+    "Italy",
+    "Mongolia",
+    "Russia",
+    "Senegal",
+    "Suriname",
+    "Switzerland",
+    "Yemen",
+    "Angola",
+    "Liechtenstein",
+    "Cote d'Ivoire",
+    "Germany",
+    "Madagascar",
+    "Mexico",
+    "Rwanda",
+    "South Sudan",
+    "Antarctica",
+    "Bosnia and Herzegovina",
+    "Uganda",
+    "Vanuatu",
+    "Georgia",
+    "Kenya",
+    "Libya",
+    "Lithuania",
+    "Malawi",
+    "Saint Kitts and Nevis",
+    "Botswana",
+    "Fiji",
+    "Solomon Islands",
+    "Cameroon",
+    "Canada",
+    "New Zealand",
+    "Portugal",
+    "Samoa",
+    "Sweden",
+    "Andorra",
+    "Argentina",
+    "Timor-Leste",
+    "Zambia",
+    "Dominica",
+    "Micronesia",
+    "Nicaragua",
+    "Nigeria",
+    "Sri Lanka",
+    "Bahrain",
+    "Belarus",
+    "Oman",
+    "Taiwan*",
+    "Uzbekistan",
+    "Brunei",
+    "Mozambique",
+    "Palau",
+    "Paraguay",
+    "Slovenia",
+    "Tajikistan",
+    "Iraq",
+    "Mauritania",
+    "San Marino",
+    "Seychelles",
+    "Tunisia",
+    "Uruguay",
+    "Bolivia",
+    "Iceland",
+    "Romania",
+    "South Africa",
+    "West Bank and Gaza",
+    "Denmark",
+    "Eswatini",
+    "Lesotho",
+    "Guinea",
+    "Mali",
+    "Niger",
+    "Philippines",
+    "Somalia",
+    "Summer Olympics 2020",
+    "Bahamas",
+    "Djibouti",
+    "Tonga",
+    "Ghana",
+    "Haiti",
+    "Moldova",
+    "Morocco",
+    "Croatia",
+    "Czechia",
+    "Israel",
+    "Kosovo",
+    "Kyrgyzstan",
+    "Marshall Islands",
+    "Norway",
+    "Sudan",
+    "Azerbaijan",
+    "Equatorial Guinea",
+    "United Arab Emirates",
+    "United Kingdom"
+```
 
-## Name
-Choose a self-explaining name for your project.
+### Covid Policy Stringency per Country
+The second endpoint provides an overview of the current stringency level of policies regarding Covid-19 for a given country, in addition to the number of currently active policies.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+#### - Request
+```
+Method: GET
+Path: /corona/v1/policy/{:country_code}{?scope=YYYY-MM-DD}
+```
+```{:country_code}``` refers to the ISO 3166-1 alpha-3 country code.  
+```{?scope=YYYY-MM-DD}```optional: indicates the date for which the policy stringency information should be returned.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+#### - Response
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- Content type: ```application/json```
+Body (Example):
+```json
+{
+    "country_code": "NOR",
+    "scope": "2021-12-12",
+    "stringency": 40.74,
+    "policies": 20
+}
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```
+### Status Interface
+The status interface indicates the availability of all individual services this service depends on. The status interface further provides information about the number of registered webhooks (more details is provided in the next section), and the uptime of the service.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+#### - Request
+```
+Method: GET
+Path: /corona/v1/status
+```
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- Content type: ```application/json```
+Body (Example):
+```json
+{
+    "cases_api": "200 OK",
+    "policy_api": "200 OK",
+    "restcountries_api": "200 OK",
+    "webhooks": 1,
+    "version": "v1",
+    "uptime": "6 s"
+}
+```
+### Notification
+As an additional feature, users can register webhooks that are triggered by the service based on specified events, specifically if information about given countries is invoked, where the minimum frequency can be specified. Users can register multiple webhooks. 
+### Registration of Webhook
+#### - Request
+```
+Method: POST
+Path: /corona/v1/notifications/
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+- Content type: ```application/json```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+The body contains  
+- The URL to be triggered upon event (the service that should be invoked)
+- The country for which the trigger applies. Supports usage of ISO 3166-1 alpha-3 country code. Country code will be converted to the appropriate country name.
+- The minimum number of repeated invocations before notification should occur
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Body (Example):
+```json
+{
+   "url": "http://10.212.136.78:8081/client",
+   "country": "Norway",
+   "calls": 2
+}
+```
+#### - Response
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+- Content type: ```application/json```   
+ 
+Body (Example):
+```json
+{
+    "webhook_id": "yzdPGfAORdmgKDv"
+}
+```
+### Deletion of Webhook
 
-## License
-For open source projects, say how it is licensed.
+#### - Request
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+```
+Method: DELETE
+Path: /corona/v1/notifications/{id}
+```
+
+```{id}``` is the ID returned during the webhook registration
+
+#### - Response
+- Content type: ```application/json```  
+```json
+{
+    "result": "The webhook has been successfully removed from the database!"
+}
+```
+
+
+### View registered webhook
+
+#### - Request
+
+```
+Method: GET
+Path: /corona/v1/notifications/{id}
+```
+
+```{id}``` is the ID returned during the webhook registration
+
+#### - Response
+* Content type: `application/json`
+
+Body (Example):
+```json
+{
+    "id": "yzdPGfAORdmgKDv",
+    "url": "http://10.212.136.78:8081/client",
+    "country": "Norway",
+    "calls": 2
+}
+
+```
+
+### View all registered webhooks
+
+#### - Request
+
+```
+Method: GET
+Path: /corona/v1/notifications/
+```
+
+#### - Response
+
+The response is a collection of all registered webhooks.
+
+* Content type: `application/json`
+
+Body (Example):
+```json
+[{
+    "id": "yzdPGfAORdmgKDv",
+    "url": "http://10.212.136.78:8081/client",
+    "country": "Norway",
+    "calls": 2
+ },
+ {
+    "webhook_id": "DiSoisivucios",
+    "url": "http://10.212.136.78:8081/client",
+    "country": "Sweden",
+    "calls": 5
+ },
+...
+]
+```
+### Webhook Invocation (upon trigger)
+
+When a webhook is triggered, it sends information as follows.
+
+```
+Method: POST
+Path: <url specified in the corresponding webhook registration>
+```
+
+* Content type: `application/json`
+
+Body (Example):
+```json
+{
+    "id": "yzdPGfAORdmgKDv",
+    "url": "http://10.212.136.78:8081/client",
+    "country": "Norway",
+    "calls": 2
+}
+```
