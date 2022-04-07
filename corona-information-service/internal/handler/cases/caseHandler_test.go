@@ -13,6 +13,7 @@ var endpoint *httptest.Server
 
 var client = http.Client{}
 
+//Test struct used for multiple tests
 type Tests struct {
 	name       string
 	server     *httptest.Server
@@ -20,6 +21,7 @@ type Tests struct {
 	statusCode int
 }
 
+//Test main, used to instantiate the endpoint test server, and run all tests
 func TestMain(m *testing.M) {
 	endpoint = httptest.NewServer(http.HandlerFunc(CaseHandler(&client)))
 	m.Run()

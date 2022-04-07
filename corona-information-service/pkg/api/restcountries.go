@@ -26,7 +26,6 @@ func GetCountryNameByAlphaCode(alpha3 string) (string, error) {
 	}
 
 	decoder := json.NewDecoder(res.Body)
-
 	err = decoder.Decode(&c)
 	if err != nil {
 		return "", err

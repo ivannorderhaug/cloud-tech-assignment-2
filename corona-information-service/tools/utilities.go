@@ -7,7 +7,7 @@ import (
 
 //PathSplitter
 //Example of usage: /corona/v1/cases/norway has a length of 5, if it matches basePathLength(which is 4)+length param(which is 1 in this case).
-//It'll return a slice containing only 1 element which is the search param (norway)*/
+//It'll return a slice containing only 1 element which is the search param (norway)
 func PathSplitter(path string, length int) ([]string, bool) {
 	//Trims away "/" at the end of path. Only if there is one there
 	path = strings.TrimSuffix(path, "/")

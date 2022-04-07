@@ -8,17 +8,17 @@ import (
 	"corona-information-service/pkg/db"
 	"corona-information-service/tools/hash"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
 )
 
+// COLLECTION can be changed
 const COLLECTION = "notifications"
 
 var webhooks []model.Webhook
 
-// InitializeWebhooks */
+// InitializeWebhooks retrieves all the webhooks from firestore
 func InitializeWebhooks() {
 	_, err := GetAllWebhooks()
 	if err != nil {
@@ -26,7 +26,7 @@ func InitializeWebhooks() {
 	}
 }
 
-// GetWebhook */
+// GetWebhook gets single webhook from local slice of webhooks
 func GetWebhook(webhookId string) (model.Webhook, bool) {
 	for _, wh := range webhooks {
 		if wh.ID == webhookId {
@@ -36,7 +36,7 @@ func GetWebhook(webhookId string) (model.Webhook, bool) {
 	return model.Webhook{}, false
 }
 
-// GetAllWebhooks */
+// GetAllWebhooks retrieves all the webhooks from firestore
 func GetAllWebhooks() ([]model.Webhook, error) {
 	documentsFromFirestore, err := db.GetAllDocumentsFromFirestore(hash.Hash(COLLECTION))
 	if err != nil {
@@ -55,13 +55,13 @@ func GetAllWebhooks() ([]model.Webhook, error) {
 	return webhooks, nil
 }
 
-// DeleteWebhook */
+// DeleteWebhook deletes webhook locally and then from firestore
 func DeleteWebhook(webhookId string) (bool, error) {
 	var deleted = false
 	if len(webhooks) != 0 {
 		for i, wh := range webhooks {
 			if wh.ID == webhookId {
-				copy(webhooks[i:], webhooks[i+1:])          // Shift s[i+1:] left one index.
+				copy(webhooks[i:], webhooks[i+1:])          // Shift webhooks[i+1:] left one index.
 				webhooks[len(webhooks)-1] = model.Webhook{} // Erase last element.
 				webhooks = webhooks[:len(webhooks)-1]
 				deleted = true
@@ -76,10 +76,11 @@ func DeleteWebhook(webhookId string) (bool, error) {
 	return deleted, nil
 }
 
-// RegisterWebhook */
+// RegisterWebhook registers a new webhook, and adds it to firestore
 func RegisterWebhook(r *http.Request) (map[string]string, error) {
 	var webhook model.Webhook
 
+	//decode post request into webhook body
 	err := customjson.Decode(r, &webhook)
 	if err != nil {
 		return map[string]string{}, err
@@ -87,16 +88,19 @@ func RegisterWebhook(r *http.Request) (map[string]string, error) {
 
 	//checks if alpha3 code was used as param for country
 	if len(webhook.Country) == 3 {
+		//gets country name from restcountries api
 		country, err := api.GetCountryNameByAlphaCode(webhook.Country)
 		if err != nil {
 			return map[string]string{}, err
 		}
-		webhook.Country = fmt.Sprint(country)
+		webhook.Country = country
 	}
 
+	//autogenerate random id
 	id := autoId()
 	webhook.ID = id
-	//Adds webhook to database, return documentID which will be used as webhookId
+
+	//Adds webhook to database
 	err = db.AddToFirestore(hash.Hash(COLLECTION), hash.Hash(id), webhook)
 	if err != nil {
 		return map[string]string{}, err
@@ -110,7 +114,7 @@ func RegisterWebhook(r *http.Request) (map[string]string, error) {
 	return response, nil
 }
 
-// RunWebhookRoutine */
+// RunWebhookRoutine runs webhook routine for all webhooks
 func RunWebhookRoutine(country string) error {
 	for i, webhook := range webhooks {
 		if webhook.Country == country {
@@ -161,7 +165,7 @@ func autoId() string {
 	return string(arr)
 }
 
-// callUrl
+// callUrl sends post request to specified url
 func callUrl(url string, data interface{}) {
 	payloadBuffer := new(bytes.Buffer)
 	err := json.NewEncoder(payloadBuffer).Encode(data)

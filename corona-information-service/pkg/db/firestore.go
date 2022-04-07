@@ -82,7 +82,8 @@ func DeleteSingleDocumentFromFirestore(collectionName string, documentID string)
 	return nil
 }
 
-// UpdateDocument updates a document in the firestore database. If value = "DELETE", then it'll delete that field from the document.
+// UpdateDocument updates a document in the firestore database.
+//If value = "DELETE", then it'll delete that field from the document.
 func UpdateDocument(collectionName string, documentID string, path string, value interface{}) error {
 	if value == DELETE {
 		value = firestore.Delete

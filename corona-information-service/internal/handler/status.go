@@ -12,7 +12,7 @@ import (
 
 var startTime = time.Now()
 
-//getUptime: Gets uptime
+//getUptime Gets uptime
 func getUptime() time.Duration {
 	return time.Since(startTime)
 }
@@ -46,6 +46,7 @@ func StatusHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 		policyApiStatus = policyApi.Status
 		restCountriesApiStatus = restCountriesApi.Status
 
+		//Webhooks
 		webhooksCount := 0
 		webhooks, err := webhook.GetAllWebhooks()
 		if err == nil {

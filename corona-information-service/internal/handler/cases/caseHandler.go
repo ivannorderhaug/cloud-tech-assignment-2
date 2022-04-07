@@ -30,16 +30,19 @@ func CaseHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *ht
 			return
 		}
 
+		//Runs purge routine in background
 		if !t {
 			runPurgeRoutine()
 		}
 
+		//Gets correct country name from the request issued by the end user
 		country, err, status := getCountry(r)
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
 		}
 
+		//Checks cache if case data for country already exists
 		if c := cache.Get(cases, country); c != nil {
 			//Failed webhook routine doesn't need error handling
 			go func() {
@@ -49,44 +52,59 @@ func CaseHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *ht
 			return
 		}
 
+		//Formats the country correctly into a graphql query
 		query, err := graphql.ConvertToGraphql(model.QUERY, country)
 		if err != nil {
 			http.Error(w, "error during marshalling", http.StatusInternalServerError)
 			return
 		}
 
+		//Issues the graphql request
 		res, err := customhttp.IssueRequest(client, http.MethodPost, model.CASES_URL, query)
 		if err != nil {
 			http.Error(w, "error issuing a request", http.StatusInternalServerError)
 			return
 		}
 
+		//Gets case data from response
 		c, err, status := getCase(res)
 		if err != nil {
 			http.Error(w, err.Error(), status)
 			return
 		}
 
+		//Runs webhook routine on a different thread
 		//Failed webhook routine doesn't need error handling
 		go func() {
 			_ = webhook.RunWebhookRoutine(c.Country)
 		}()
 
+		//At this point, it is clear that the case data does not exist in the cache, therefore add it to the cache
 		cache.Put(cases, c.Country, c)
 
+		//Encode case data
 		customjson.Encode(w, c)
 	}
 }
 
 // getCountry handles search, converts alpha3 to country name if necessary and returns country name
 func getCountry(r *http.Request) (string, error, int) {
+	//Checks if path is correctly formatted
 	path, ok := tools.PathSplitter(r.URL.Path, 1)
 	if !ok {
 		return "", errors.New("path does not match the required path format specified on the root level and in the README"), http.StatusBadRequest
 	}
 
+	//Count spaces, due to some edge cases in external api
+	count := 0
+	for _, v := range path[0] {
+		if v == ' ' {
+			count++
+		}
+	}
+
 	//Handle spaces
-	country := strings.Replace(path[0], " ", "%20", -1)
+	country := path[0]
 
 	//Gets country name if user input is alpha3 code
 	if len(country) == 3 {
@@ -97,9 +115,15 @@ func getCountry(r *http.Request) (string, error, int) {
 		country = fmt.Sprint(alpha3ToCountry)
 	}
 
-	//Handle US edge case
-	if len(country) != 2 {
+	//If space count is lower than 2, then it is safe to assume that the first letter should be uppercase,
+	//if there are multiple words then the first letter will be uppercase in each word
+	if count < 2 {
 		country = strings.Title(strings.ToLower(country))
+	}
+
+	//Handle US edge case
+	if len(country) == 2 {
+		country = strings.ToUpper(country)
 	}
 
 	return country, nil, 0
@@ -108,7 +132,7 @@ func getCountry(r *http.Request) (string, error, int) {
 //Purges cache every 8 hours as the external case API is updated three times a day
 func runPurgeRoutine() {
 	t = true
-
+	//Create new ticker
 	ticker := time.NewTicker(8 * time.Hour)
 
 	go func() {
@@ -139,15 +163,18 @@ func getCase(res *http.Response) (*model.Case, error, int) {
 		} `json:"data"`
 	}
 
+	//Decodes to struct
 	err := customjson.Decode(res, &tmpCase)
 	if err != nil {
 		return &model.Case{}, errors.New("error during decoding"), http.StatusInternalServerError
 	}
 
+	//If name in struct is empty, then the request failed
 	if len(tmpCase.Data.Country.Name) == 0 {
 		return &model.Case{}, errors.New("could not find a country with that name"), http.StatusNotFound
 	}
 
+	//Map data
 	info := tmpCase.Data.Country.MostRecent
 	c := model.Case{
 		Country:        tmpCase.Data.Country.Name,

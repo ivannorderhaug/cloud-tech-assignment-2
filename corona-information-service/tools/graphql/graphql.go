@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+//ConvertToGraphql */
 func ConvertToGraphql(requestBody string, country string) ([]byte, error) {
 	//Formats query
 	query := fmt.Sprintf(requestBody, country)

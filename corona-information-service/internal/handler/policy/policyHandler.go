@@ -82,10 +82,13 @@ func mapDataToStruct(res *http.Response, cc, date string) (*model.Policy, error)
 	// Used to unwrap nested structure
 	countryName := getCountryName(cc)
 
+	//If the restcountry api couldn't find a country name for the CC specified by the end user,
+	//then it is safe to assume that the cc was wrong
 	if len(countryName) == 0 {
 		return &model.Policy{}, errors.New("couldn't find country")
 	}
 
+	//temp struct used to unwrap nested structure
 	var data struct {
 		StringencyData struct {
 			Stringency       float64 `json:"stringency"`
@@ -94,11 +97,13 @@ func mapDataToStruct(res *http.Response, cc, date string) (*model.Policy, error)
 		PolicyActions []interface{} `json:"policyActions"`
 	}
 
+	//decode response into temp struct
 	err := customjson.Decode(res, &data)
 	if err != nil {
 		return &model.Policy{}, err
 	} //returns decoded wrapper for stringency and policy data
 
+	//Some logic to make sure stringency is correct
 	stringency := data.StringencyData.Stringency
 
 	if data.StringencyData.StringencyActual != 0 {
@@ -113,6 +118,8 @@ func mapDataToStruct(res *http.Response, cc, date string) (*model.Policy, error)
 
 	//Assumption: Active policies are the number of policies returned.
 	pa := 0
+
+	//Policy action will always be 1, even if there are no policies.
 	if len(data.PolicyActions) > 1 {
 		pa = len(data.PolicyActions)
 	}
@@ -137,6 +144,7 @@ func hasScope(r *http.Request) (string, bool) {
 	return scope, true
 }
 
+//getCountryCode gets the alpha3 code by verifying that the end user has correctly formatted their search
 func getCountryCode(r *http.Request) (string, error, int) {
 	path, ok := tools.PathSplitter(r.URL.Path, 1)
 	if !ok {
@@ -152,12 +160,14 @@ func getCountryCode(r *http.Request) (string, error, int) {
 	return cc, nil, 0
 }
 
+//runWebhookRoutine runs a webhook routine
 func runWebhookRoutine(country string) {
 	go func() {
 		_ = webhook.RunWebhookRoutine(country)
 	}()
 }
 
+//getCountryName issues a request to the rest countries api and returns a country name
 func getCountryName(cc string) string {
 
 	var countryName string

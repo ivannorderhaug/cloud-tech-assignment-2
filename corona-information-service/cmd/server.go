@@ -8,11 +8,17 @@ import (
 	"corona-information-service/pkg/customhttp"
 	"corona-information-service/pkg/db"
 	"corona-information-service/pkg/webhook"
+	"corona-information-service/tools/hash"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 )
+
+//Init hash secret
+func init() {
+	hash.Secret = []byte{0, 4, 0, 2, 2, 0, 0, 0}
+}
 
 func main() {
 	// Handle port assignment (either based on environment variable, or local override)

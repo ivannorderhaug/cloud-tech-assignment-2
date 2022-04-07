@@ -26,7 +26,7 @@ func NotificationHandler() func(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// methodHandler */
+// methodHandler handles different REST methods, and calls the appropriate function
 func methodHandler(w http.ResponseWriter, r *http.Request) {
 	//Splits url into parts
 	parts := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
@@ -55,7 +55,7 @@ func methodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// encodeAllWebhooks */
+// encodeAllWebhooks encodes all the webhooks retrieved from the firestore database
 func encodeAllWebhooks(w http.ResponseWriter) {
 	webhooks, err := webhook.GetAllWebhooks()
 	if err != nil {
@@ -71,7 +71,7 @@ func encodeAllWebhooks(w http.ResponseWriter) {
 	customjson.Encode(w, webhooks)
 }
 
-// encodeSingleWebhook */
+// encodeSingleWebhook encodes a single webhook specified by id
 func encodeSingleWebhook(w http.ResponseWriter, id string) {
 	wh, found := webhook.GetWebhook(id)
 	if !found {
@@ -81,7 +81,7 @@ func encodeSingleWebhook(w http.ResponseWriter, id string) {
 	customjson.Encode(w, wh)
 }
 
-// encodeWebhookDeletionResponse */
+// encodeWebhookDeletionResponse deletes webhook and encodes a response
 func encodeWebhookDeletionResponse(w http.ResponseWriter, id string) {
 	deleted, err := webhook.DeleteWebhook(id)
 	if err != nil || !deleted {
