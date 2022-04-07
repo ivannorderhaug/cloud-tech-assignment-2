@@ -2,11 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
 
-const RESTCOUNTRIES = "https://restcountries.com/v3.1/alpha/%s?fields=name"
+var RESTCOUNTRIES = "https://restcountries.com/v3.1/alpha/%s?fields=name"
 
 // GetCountryNameByAlphaCode
 // Issues a http request of method GET to the RESTCountries API
@@ -29,6 +30,10 @@ func GetCountryNameByAlphaCode(alpha3 string) (interface{}, error) {
 	err = decoder.Decode(&c)
 	if err != nil {
 		return nil, err
+	}
+
+	if c.Name == nil {
+		return nil, errors.New("country code does not exist")
 	}
 
 	//Returns an interface by going one layer into the country name interface and picking out the common name
