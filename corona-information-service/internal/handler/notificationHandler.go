@@ -1,35 +1,43 @@
 package handler
 
 import (
-	"corona-information-service/tools"
+	"corona-information-service/pkg/customjson"
+	"corona-information-service/pkg/webhook"
 	"net/http"
 	"strings"
 )
 
 // NotificationHandler */
-func NotificationHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		response, err := tools.RegisterWebhook(r)
-		if err != nil {
-			http.Error(w, "Error in registering webhook", http.StatusInternalServerError)
-			return
+func NotificationHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			response, err := webhook.RegisterWebhook(r)
+			if err != nil {
+				http.Error(w, "Error in registering webhook", http.StatusInternalServerError)
+				return
+			}
+			customjson.Encode(w, response)
 		}
-		tools.Encode(w, response)
+
+		if r.Method == http.MethodGet || r.Method == http.MethodDelete {
+			methodHandler(w, r)
+		}
 	}
 
-	if r.Method == http.MethodGet || r.Method == http.MethodDelete {
-		pathHandler(w, r)
-	}
 }
 
-// pathHandler */
-func pathHandler(w http.ResponseWriter, r *http.Request) {
+// methodHandler handles different REST methods, and calls the appropriate function
+func methodHandler(w http.ResponseWriter, r *http.Request) {
 	//Splits url into parts
 	parts := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
 
 	switch len(parts) {
 	//If length of parts is 4, then it means the user has wants all webhooks
 	case 4:
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
+			return
+		}
 		encodeAllWebhooks(w)
 
 	//If the length of parts is 5, then it means the user has specified webhook id in their request
@@ -47,9 +55,9 @@ func pathHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// encodeAllWebhooks */
+// encodeAllWebhooks encodes all the webhooks retrieved from the firestore database
 func encodeAllWebhooks(w http.ResponseWriter) {
-	webhooks, err := tools.GetAllWebhooks()
+	webhooks, err := webhook.GetAllWebhooks()
 	if err != nil {
 		http.Error(w, "Error retrieving webhooks from database", http.StatusInternalServerError)
 		return
@@ -60,27 +68,27 @@ func encodeAllWebhooks(w http.ResponseWriter) {
 		return
 	}
 
-	tools.Encode(w, webhooks)
+	customjson.Encode(w, webhooks)
 }
 
-// encodeSingleWebhook */
+// encodeSingleWebhook encodes a single webhook specified by id
 func encodeSingleWebhook(w http.ResponseWriter, id string) {
-	webhook, found := tools.GetWebhook(id)
+	wh, found := webhook.GetWebhook(id)
 	if !found {
 		http.Error(w, "Unable to locate webhook in database", http.StatusNotFound)
 		return
 	}
-	tools.Encode(w, webhook)
+	customjson.Encode(w, wh)
 }
 
-// encodeWebhookDeletionResponse */
+// encodeWebhookDeletionResponse deletes webhook and encodes a response
 func encodeWebhookDeletionResponse(w http.ResponseWriter, id string) {
-	err := tools.DeleteWebhook(id)
-	if err != nil {
+	deleted, err := webhook.DeleteWebhook(id)
+	if err != nil || !deleted {
 		http.Error(w, "Error removing webhook from database. it might not exist", http.StatusInternalServerError)
 		return
 	}
 	response := make(map[string]string, 1)
 	response["result"] = "The webhook has been successfully removed from the database!"
-	tools.Encode(w, response)
+	customjson.Encode(w, response)
 }

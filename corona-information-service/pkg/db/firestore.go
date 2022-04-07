@@ -11,21 +11,25 @@ import (
 var ctx context.Context
 var client *firestore.Client
 
+const DELETE = "DELETE"
+
 // InitializeFirestore Method for initializing the firestore client */
-func InitializeFirestore() {
+func InitializeFirestore() error {
 	// Firebase initialisation
 	ctx = context.Background()
 
 	sa := option.WithCredentialsFile("./service-account.json")
 	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
 	client, err = app.Firestore(ctx)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
+
+	return nil
 }
 
 // AddToFirestore Simple method to add data to the firestore database.
@@ -78,12 +82,16 @@ func DeleteSingleDocumentFromFirestore(collectionName string, documentID string)
 	return nil
 }
 
-// UpdateWebhook */
-func UpdateWebhook(collectionName string, documentID string, path string, newValue interface{}) error {
+// UpdateDocument updates a document in the firestore database.
+//If value = "DELETE", then it'll delete that field from the document.
+func UpdateDocument(collectionName string, documentID string, path string, value interface{}) error {
+	if value == DELETE {
+		value = firestore.Delete
+	}
 	_, err := client.Collection(collectionName).Doc(documentID).Update(ctx, []firestore.Update{
 		{
 			Path:  path,
-			Value: newValue,
+			Value: value,
 		},
 	})
 	if err != nil {
