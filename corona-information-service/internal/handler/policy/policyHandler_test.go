@@ -55,6 +55,15 @@ func TestPolicyHandler(t *testing.T) {
 			},
 			statusCode: http.StatusOK,
 		},
+		{
+			name: "basic-request-with-invalid-alpha3",
+			server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("{\"policyActions\":[{\"policy_type_code\":\"C1\",\"policy_type_display\":\"School closing\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"No measures\"},{\"policy_type_code\":\"C2\",\"policy_type_display\":\"Workplace closing\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"No measures\"},{\"policy_type_code\":\"C3\",\"policy_type_display\":\"Cancel public events\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"No Measures\"},{\"policy_type_code\":\"C4\",\"policy_type_display\":\"Restrictions on gatherings\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"No restrictions\"},{\"policy_type_code\":\"C5\",\"policy_type_display\":\"Close public transport\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"No Measures\"},{\"policy_type_code\":\"C6\",\"policy_type_display\":\"Stay at home requirements\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"No measures\"},{\"policy_type_code\":\"C7\",\"policy_type_display\":\"Restrictions on internal movement\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"No Measures\"},{\"policy_type_code\":\"C8\",\"policy_type_display\":\"International travel controls\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"policy_value_display_field\":\"No Measures\"},{\"policy_type_code\":\"E1\",\"policy_type_display\":\"Income support\",\"policyvalue\":\"2\",\"policyvalue_actual\":2,\"flagged\":false,\"is_general\":false,\"notes\":null,\"flag_value_display_field\":\"All workers\",\"policy_value_display_field\":\">50% lost income\"},{\"policy_type_code\":\"E2\",\"policy_type_display\":\"Debt/contract relief\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"policy_value_display_field\":\"None\"},{\"policy_type_code\":\"H1\",\"policy_type_display\":\"Public information campaigns\",\"policyvalue\":\"2\",\"policyvalue_actual\":2,\"flagged\":true,\"is_general\":true,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"Coordinated public campaign\"},{\"policy_type_code\":\"H2\",\"policy_type_display\":\"Testing policy\",\"policyvalue\":\"3\",\"policyvalue_actual\":3,\"flagged\":null,\"is_general\":null,\"notes\":null,\"policy_value_display_field\":\"Generally available\"},{\"policy_type_code\":\"H3\",\"policy_type_display\":\"Contact tracing\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"policy_value_display_field\":\"No contact tracing\"},{\"policy_type_code\":\"H5\",\"policy_type_display\":\"Investment in vaccines\",\"policyvalue\":\"0\",\"policyvalue_actual\":0,\"flagged\":null,\"is_general\":null,\"notes\":null,\"policy_value_display_field\":\"USD Value\"},{\"policy_type_code\":\"H6\",\"policy_type_display\":\"Facial Coverings\",\"policyvalue\":\"1\",\"policyvalue_actual\":1,\"flagged\":true,\"is_general\":true,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"Recommended\"},{\"policy_type_code\":\"H7\",\"policy_type_display\":\"Vaccination policy\",\"policyvalue\":\"5\",\"policyvalue_actual\":5,\"flagged\":true,\"is_general\":true,\"notes\":null,\"flag_value_display_field\":\"Government funded\",\"policy_value_display_field\":\"Universal\"},{\"policy_type_code\":\"H8\",\"policy_type_display\":\"Protection of elderly people\",\"policyvalue\":\"1\",\"policyvalue_actual\":1,\"flagged\":false,\"is_general\":false,\"notes\":null,\"flag_value_display_field\":\"General\",\"policy_value_display_field\":\"Recommended protections\"},{\"policy_type_code\":\"V1\",\"policy_type_display\":\"Vaccine Prioritisation\",\"policyvalue\":\"-3\",\"policyvalue_actual\":-3,\"flagged\":null,\"is_general\":null,\"notes\":null},{\"policy_type_code\":\"V2\",\"policy_type_display\":\"Vaccine Availability\",\"policyvalue\":\"25,126\",\"policyvalue_actual\":25126,\"flagged\":null,\"is_general\":null,\"notes\":null},{\"policy_type_code\":\"V3\",\"policy_type_display\":\"Vaccine Financial Support\",\"policyvalue\":\"25,126\",\"policyvalue_actual\":25126,\"flagged\":null,\"is_general\":null,\"notes\":null},{\"policy_type_code\":\"V4\",\"policy_type_display\":\"Mandatory Vaccination\",\"policyvalue\":\"25,126\",\"policyvalue_actual\":25126,\"flagged\":null,\"is_general\":null,\"notes\":null}],\"stringencyData\":{\"date_value\":\"2022-03-07\",\"country_code\":\"NOR\",\"confirmed\":1315692,\"deaths\":1664,\"stringency_actual\":11.11,\"stringency\":11.11}}"))
+			})),
+			response:   &model.Policy{},
+			statusCode: http.StatusBadRequest,
+		},
 	}
 	//basic request with real alpha3, no scope
 	t.Run(tests[0].name, func(t *testing.T) {
@@ -98,6 +107,29 @@ func TestPolicyHandler(t *testing.T) {
 
 		if !reflect.DeepEqual(tests[1].statusCode, res.StatusCode) {
 			t.Errorf("FAILED: expected %v, got %v\n", tests[1].statusCode, res.StatusCode)
+		}
+	})
+
+	//basic request with an invalid alpha3
+	t.Run(tests[2].name, func(t *testing.T) {
+		defer tests[2].server.Close()
+
+		model.STRINGENCY_URL = tests[2].server.URL + "/"
+
+		request, _ := http.NewRequest(http.MethodGet, endpoint.URL+model.POLICY_PATH+"norway", nil)
+		res, _ := client.Do(request)
+
+		decoder := json.NewDecoder(res.Body)
+
+		var p model.Policy
+		_ = decoder.Decode(&p)
+
+		if !reflect.DeepEqual(tests[2].response, &p) {
+			t.Errorf("FAILED: expected %v, got %v\n", tests[2].response, &p)
+		}
+
+		if !reflect.DeepEqual(tests[2].statusCode, res.StatusCode) {
+			t.Errorf("FAILED: expected %v, got %v\n", tests[2].statusCode, res.StatusCode)
 		}
 	})
 }
