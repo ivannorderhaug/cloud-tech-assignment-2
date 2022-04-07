@@ -3,7 +3,7 @@
 ## Assumptions
 
 *  Active policies: in issue [#41](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022/-/issues/41) it is stated that: 
-`The response is the simple variant - the number of active policies returned, nothing else.`. I interpret this as all the policies that gets returned, count as active. Even though some of them have "no measures" as value in the `policy_value_display_field`
+`The response is the simple variant - the number of active policies returned, nothing else.` I interpret this as all the policies that gets returned, count as active. Even though some of them have "no measures" as value in the `policy_value_display_field`
 
 
 ## Deployment
@@ -22,7 +22,7 @@ git clone https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022-workspace/iv
 #### NOTE: By deploying the service locally, you lose access to the notification endpoint and the webhooks. To get access to them, please register [here](https://firebase.google.com/). Create a service account and put the .json file in the project folder --> (./corona-information-service) 
 
 ### Hosted service
-There is a currently a running docker container for the service available at [10.212.136.78](10.212.136.78/). To access it, you must first connect to the NTNU VPN. Thereafter, you are free to use the service as you please.
+There is a currently a running docker container for the service available at [10.212.136.78](http://10.212.136.78/). To access it, you must first connect to the NTNU VPN. Thereafter, you are free to use the service as you please.
 
 ## Endpoints
 There are currently four endpoints available with the following resource paths:
