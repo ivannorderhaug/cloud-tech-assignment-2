@@ -11,6 +11,7 @@ type Case struct {
 
 type Policy struct {
 	CountryCode string  `json:"country_code"`
+	Name        string  `json:"-"`
 	Scope       string  `json:"scope"`
 	Stringency  float64 `json:"stringency"`
 	Policies    int     `json:"policies"`

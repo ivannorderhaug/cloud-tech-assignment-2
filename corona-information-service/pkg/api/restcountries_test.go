@@ -20,7 +20,7 @@ func TestGetCountryNameByAlphaCode(t *testing.T) {
 			name: "basic-request-with-real-alpha3",
 			server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("{\"name\":{\"common\":\"Norway\",\"official\":\"Kingdom of Norway\",\"nativeName\":{\"nno\":{\"official\":\"Kongeriket Noreg\",\"common\":\"Noreg\"},\"nob\":{\"official\":\"Kongeriket Norge\",\"common\":\"Norge\"},\"smi\":{\"official\":\"Norgga gonagasriika\",\"common\":\"Norgga\"}}}}"))
+				_, _ = w.Write([]byte("{\"name\":{\"common\":\"Norway\",\"official\":\"Kingdom of Norway\",\"nativeName\":{\"nno\":{\"official\":\"Kongeriket Noreg\",\"common\":\"Noreg\"},\"nob\":{\"official\":\"Kongeriket Norge\",\"common\":\"Norge\"},\"smi\":{\"official\":\"Norgga gonagasriika\",\"common\":\"Norgga\"}}}}"))
 			})),
 			response: "Norway",
 		},
@@ -28,9 +28,9 @@ func TestGetCountryNameByAlphaCode(t *testing.T) {
 			name: "basic-request-with-fake-alpha3",
 			server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("{\"status\":404,\"message\":\"Not Found\"}"))
+				_, _ = w.Write([]byte("{\"status\":404,\"message\":\"Not Found\"}"))
 			})),
-			response: nil,
+			response: "",
 		},
 	}
 

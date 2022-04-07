@@ -44,7 +44,7 @@ func PolicyHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 
 		//Checks if policy with given date and alpha3 exists in cache, If it exists, it gets encoded
 		if cachedP := cache.GetNestedMap(policies, cc, date); cachedP != nil {
-			runWebhookRoutine(cc)
+			runWebhookRoutine(cachedP.(*model.Policy).Name)
 			customjson.Encode(w, cachedP)
 			return
 		}
@@ -62,7 +62,7 @@ func PolicyHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 		//Map data received from external api into a struct
 		p, err := mapDataToStruct(res, cc, date)
 		if err != nil {
-			http.Error(w, "error decoding response", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -80,6 +80,12 @@ func PolicyHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 //mapDataToStruct maps the received data into the struct
 func mapDataToStruct(res *http.Response, cc, date string) (*model.Policy, error) {
 	// Used to unwrap nested structure
+	countryName := getCountryName(cc)
+
+	if len(countryName) == 0 {
+		return &model.Policy{}, errors.New("couldn't find country")
+	}
+
 	var data struct {
 		StringencyData struct {
 			Stringency       float64 `json:"stringency"`
@@ -113,6 +119,7 @@ func mapDataToStruct(res *http.Response, cc, date string) (*model.Policy, error)
 
 	p := model.Policy{
 		CountryCode: cc,
+		Name:        countryName,
 		Scope:       date,
 		Stringency:  stringency,
 		Policies:    pa,
@@ -145,13 +152,31 @@ func getCountryCode(r *http.Request) (string, error, int) {
 	return cc, nil, 0
 }
 
-func runWebhookRoutine(cc string) {
+func runWebhookRoutine(country string) {
 	go func() {
-		country, err := api.GetCountryNameByAlphaCode(cc)
-		if err != nil {
-			fmt.Println("Couldn't retrieve country name")
-			return
-		}
-		_ = webhook.RunWebhookRoutine(fmt.Sprint(country))
+		_ = webhook.RunWebhookRoutine(country)
 	}()
+}
+
+func getCountryName(cc string) string {
+
+	var countryName string
+
+	//Check if country name is already cached
+	for k, v := range policies {
+		if k == cc {
+			for _, v2 := range v {
+				countryName = v2.(*model.Policy).Name
+				break
+			}
+			break
+		}
+	}
+
+	if len(countryName) == 0 {
+		//Gets the country name
+		countryName, _ = api.GetCountryNameByAlphaCode(cc)
+	}
+
+	return countryName
 }
