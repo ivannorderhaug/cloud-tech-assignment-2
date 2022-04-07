@@ -171,7 +171,7 @@ func getCase(res *http.Response) (*model.Case, error, int) {
 
 	//If name in struct is empty, then the request failed
 	if len(tmpCase.Data.Country.Name) == 0 {
-		return &model.Case{}, errors.New("could not find a country with that name"), http.StatusNotFound
+		return &model.Case{}, errors.New("could not find a country with that name. the external api is very sensitive, please see README for more information"), http.StatusNotFound
 	}
 
 	//Map data
