@@ -107,7 +107,6 @@ func TestCaseHandler(t *testing.T) {
 
 	//Request with no parameters, expects status code 400
 	t.Run(tests[2].name, func(t *testing.T) {
-		defer tests[2].server.Close()
 		request, _ := http.NewRequest(http.MethodGet, endpoint.URL+model.CASE_PATH, nil)
 		res, _ := client.Do(request)
 

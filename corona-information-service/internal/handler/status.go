@@ -30,15 +30,15 @@ func StatusHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 		//Requests
 		casesApi, err := customhttp.IssueRequest(client, http.MethodGet, model.CASES_API, nil)
 		if err != nil {
-			casesApiStatus = fmt.Sprintf("%s %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			casesApiStatus = fmt.Sprintf("%d %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 		policyApi, err := customhttp.IssueRequest(client, http.MethodHead, model.STRINGENCY_API, nil)
 		if err != nil {
-			policyApiStatus = fmt.Sprintf("%s %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			policyApiStatus = fmt.Sprintf("%d %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 		restCountriesApi, err := customhttp.IssueRequest(client, http.MethodGet, model.RESTCOUNTRIES_API, nil)
 		if err != nil {
-			restCountriesApiStatus = fmt.Sprintf("%s %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			restCountriesApiStatus = fmt.Sprintf("%d %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 
 		//Statuses
