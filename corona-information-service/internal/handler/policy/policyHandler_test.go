@@ -1,4 +1,4 @@
-package _policy
+package policy
 
 import (
 	"corona-information-service/internal/model"

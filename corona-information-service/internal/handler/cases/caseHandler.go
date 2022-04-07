@@ -1,4 +1,4 @@
-package _case
+package cases
 
 import (
 	"corona-information-service/internal/model"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"corona-information-service/internal/handler"
-	"corona-information-service/internal/handler/case"
+	"corona-information-service/internal/handler/cases"
 	"corona-information-service/internal/handler/policy"
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/customhttp"
@@ -26,14 +26,14 @@ func main() {
 	err := db.InitializeFirestore()
 	if err == nil {
 		webhook.InitializeWebhooks()
-		http.HandleFunc(model.NOTIFICATION_PATH, handler.NotificationHandler)
-		http.HandleFunc(strings.TrimSuffix(model.NOTIFICATION_PATH, "/"), handler.NotificationHandler) //Will be forgiving since some forget "/" at the end
+		http.HandleFunc(model.NOTIFICATION_PATH, handler.NotificationHandler())
+		http.HandleFunc(strings.TrimSuffix(model.NOTIFICATION_PATH, "/"), handler.NotificationHandler()) //Will be forgiving since some forget "/" at the end
 	}
 
 	// Set up handler endpoints
-	http.HandleFunc(model.DEFAULT_PATH, handler.DefaultHandler)
-	http.HandleFunc(model.CASE_PATH, _case.CaseHandler(customhttp.Client))
-	http.HandleFunc(model.POLICY_PATH, _policy.PolicyHandler(customhttp.Client))
+	http.HandleFunc(model.DEFAULT_PATH, handler.DefaultHandler())
+	http.HandleFunc(model.CASE_PATH, cases.CaseHandler(customhttp.Client))
+	http.HandleFunc(model.POLICY_PATH, policy.PolicyHandler(customhttp.Client))
 	http.HandleFunc(model.STATUS_PATH, handler.StatusHandler(customhttp.Client))
 
 	// Start server

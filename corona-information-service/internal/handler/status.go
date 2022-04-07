@@ -30,15 +30,15 @@ func StatusHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 		//Requests
 		casesApi, err := customhttp.IssueRequest(client, http.MethodGet, model.CASES_API, nil)
 		if err != nil {
-			casesApiStatus = fmt.Sprintf("%s %s", http.StatusFailedDependency, http.StatusText(http.StatusFailedDependency))
+			casesApiStatus = fmt.Sprintf("%s %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 		policyApi, err := customhttp.IssueRequest(client, http.MethodHead, model.STRINGENCY_API, nil)
 		if err != nil {
-			policyApiStatus = fmt.Sprintf("%s %s", http.StatusFailedDependency, http.StatusText(http.StatusFailedDependency))
+			policyApiStatus = fmt.Sprintf("%s %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 		restCountriesApi, err := customhttp.IssueRequest(client, http.MethodGet, model.RESTCOUNTRIES_API, nil)
 		if err != nil {
-			restCountriesApiStatus = fmt.Sprintf("%s %s", http.StatusFailedDependency, http.StatusText(http.StatusFailedDependency))
+			restCountriesApiStatus = fmt.Sprintf("%s %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 
 		//Statuses
@@ -58,7 +58,7 @@ func StatusHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 			RestCountries: restCountriesApiStatus,
 			Webhooks:      webhooksCount,
 			Version:       model.VERSION,
-			Uptime:        int(getUptime().Seconds()),
+			Uptime:        fmt.Sprintf("%d s", int(getUptime().Seconds())),
 		}
 
 		customjson.Encode(w, &status)

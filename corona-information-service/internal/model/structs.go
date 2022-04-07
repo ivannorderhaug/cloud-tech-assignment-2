@@ -22,7 +22,7 @@ type Status struct {
 	RestCountries string `json:"restcountries_api"`
 	Webhooks      int    `json:"webhooks"`
 	Version       string `json:"version"`
-	Uptime        int    `json:"uptime"`
+	Uptime        string `json:"uptime"`
 }
 
 type Webhook struct {

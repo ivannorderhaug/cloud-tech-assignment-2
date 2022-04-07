@@ -8,19 +8,22 @@ import (
 )
 
 // NotificationHandler */
-func NotificationHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		response, err := webhook.RegisterWebhook(r)
-		if err != nil {
-			http.Error(w, "Error in registering webhook", http.StatusInternalServerError)
-			return
+func NotificationHandler() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			response, err := webhook.RegisterWebhook(r)
+			if err != nil {
+				http.Error(w, "Error in registering webhook", http.StatusInternalServerError)
+				return
+			}
+			customjson.Encode(w, response)
 		}
-		customjson.Encode(w, response)
+
+		if r.Method == http.MethodGet || r.Method == http.MethodDelete {
+			methodHandler(w, r)
+		}
 	}
 
-	if r.Method == http.MethodGet || r.Method == http.MethodDelete {
-		methodHandler(w, r)
-	}
 }
 
 // methodHandler */

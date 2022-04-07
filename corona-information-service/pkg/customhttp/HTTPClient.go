@@ -1,6 +1,9 @@
 package customhttp
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
@@ -11,5 +14,7 @@ var (
 )
 
 func init() {
-	Client = &http.Client{}
+	Client = &http.Client{
+		Timeout: 10 * time.Second,
+	}
 }
