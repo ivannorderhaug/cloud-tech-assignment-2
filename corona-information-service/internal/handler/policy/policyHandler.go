@@ -43,14 +43,15 @@ func PolicyHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 		}
 
 		//Checks if policy with given date and alpha3 exists in cache, If it exists, it gets encoded
-		if p := cache.GetNestedMap(policies, cc, date); p != nil {
+		if cachedP := cache.GetNestedMap(policies, cc, date); cachedP != nil {
 			runWebhookRoutine(cc)
-			customjson.Encode(w, p)
+			customjson.Encode(w, cachedP)
 			return
 		}
 
 		//URL TO INVOKE
 		url := fmt.Sprintf("%s%s/%s", model.STRINGENCY_URL, cc, date)
+
 		//Issues request, gets response
 		res, err := customhttp.IssueRequest(client, http.MethodGet, url, nil) //returns response
 		if err != nil {
@@ -59,29 +60,25 @@ func PolicyHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *
 		}
 
 		//Map data received from external api into a struct
-		policy, err := mapDataToStruct(res)
+		p, err := mapDataToStruct(res, cc, date)
 		if err != nil {
 			http.Error(w, "error decoding response", http.StatusInternalServerError)
 			return
 		}
 
-		//Add missing data
-		policy.CountryCode = cc
-		policy.Scope = date
-
 		//Adds search to cache
-		cache.PutNestedMap(policies, cc, date, policy)
+		cache.PutNestedMap(policies, cc, date, p)
 
 		//Failed webhook routine doesn't need error handling
 		runWebhookRoutine(cc)
 
 		//Encodes struct
-		customjson.Encode(w, policy)
+		customjson.Encode(w, p)
 	}
 }
 
 //mapDataToStruct maps the received data into the struct
-func mapDataToStruct(res *http.Response) (*model.Policy, error) {
+func mapDataToStruct(res *http.Response, cc, date string) (*model.Policy, error) {
 	// Used to unwrap nested structure
 	var data struct {
 		StringencyData struct {
@@ -109,15 +106,19 @@ func mapDataToStruct(res *http.Response) (*model.Policy, error) {
 	}
 
 	//Assumption: Active policies are the number of policies returned.
-	p := 0
+	pa := 0
 	if len(data.PolicyActions) > 1 {
-		p = len(data.PolicyActions)
+		pa = len(data.PolicyActions)
 	}
 
-	return &model.Policy{
-		Stringency: stringency,
-		Policies:   p,
-	}, nil
+	p := model.Policy{
+		CountryCode: cc,
+		Scope:       date,
+		Stringency:  stringency,
+		Policies:    pa,
+	}
+
+	return &p, nil
 }
 
 // hasScope Checks if date param in query exists, if not then use today's date.

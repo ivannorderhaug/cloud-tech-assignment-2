@@ -10,10 +10,10 @@ type Case struct {
 }
 
 type Policy struct {
-	CountryCode string      `json:"country_code"`
-	Scope       string      `json:"scope"`
-	Stringency  float64     `json:"stringency,omitempty"`
-	Policies    interface{} `json:"policies,omitempty"`
+	CountryCode string  `json:"country_code"`
+	Scope       string  `json:"scope"`
+	Stringency  float64 `json:"stringency"`
+	Policies    int     `json:"policies"`
 }
 
 type Status struct {

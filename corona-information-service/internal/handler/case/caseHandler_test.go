@@ -63,6 +63,7 @@ func TestCaseHandler(t *testing.T) {
 
 	//Request with existing country name as parameter, expects populated case struct and status code 200
 	t.Run(tests[0].name, func(t *testing.T) {
+		defer tests[0].server.Close()
 		model.CASES_URL = tests[0].server.URL
 
 		request, _ := http.NewRequest(http.MethodGet, endpoint.URL+model.CASE_PATH+"Norway", nil)
@@ -84,6 +85,7 @@ func TestCaseHandler(t *testing.T) {
 
 	//Request with non-existing country as parameter, expects empty case struct and status code 404
 	t.Run(tests[1].name, func(t *testing.T) {
+		defer tests[1].server.Close()
 		model.CASES_URL = tests[1].server.URL
 
 		request, _ := http.NewRequest(http.MethodGet, endpoint.URL+model.CASE_PATH+"Test", nil)
@@ -105,6 +107,7 @@ func TestCaseHandler(t *testing.T) {
 
 	//Request with no parameters, expects status code 400
 	t.Run(tests[2].name, func(t *testing.T) {
+		defer tests[2].server.Close()
 		request, _ := http.NewRequest(http.MethodGet, endpoint.URL+model.CASE_PATH, nil)
 		res, _ := client.Do(request)
 
