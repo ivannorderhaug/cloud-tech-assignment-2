@@ -34,9 +34,9 @@ func CaseHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *ht
 			runPurgeRoutine()
 		}
 
-		country, err := getCountry(r)
+		country, err, status := getCountry(r)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), status)
 			return
 		}
 
@@ -61,14 +61,9 @@ func CaseHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *ht
 			return
 		}
 
-		c, err := getCase(res)
+		c, err, status := getCase(res)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if c == nil {
-			http.Error(w, "could not find a country with that name", http.StatusNotFound)
+			http.Error(w, err.Error(), status)
 			return
 		}
 
@@ -84,10 +79,10 @@ func CaseHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *ht
 }
 
 // getCountry handles search, converts alpha3 to country name if necessary and returns country name
-func getCountry(r *http.Request) (string, error) {
+func getCountry(r *http.Request) (string, error, int) {
 	path, ok := tools.PathSplitter(r.URL.Path, 1)
 	if !ok {
-		return "", errors.New("path does not match the required path format specified on the root level and in the README")
+		return "", errors.New("path does not match the required path format specified on the root level and in the README"), http.StatusBadRequest
 	}
 
 	//Handle spaces
@@ -97,7 +92,7 @@ func getCountry(r *http.Request) (string, error) {
 	if len(country) == 3 {
 		alpha3ToCountry, err := api.GetCountryNameByAlphaCode(country)
 		if err != nil {
-			return "", errors.New("error retrieving country by country code")
+			return "", errors.New("error retrieving country by country code"), http.StatusInternalServerError
 		}
 		country = fmt.Sprint(alpha3ToCountry)
 	}
@@ -107,7 +102,7 @@ func getCountry(r *http.Request) (string, error) {
 		country = strings.Title(strings.ToLower(country))
 	}
 
-	return country, nil
+	return country, nil, 0
 }
 
 //Purges cache every 8 hours as the external case API is updated three times a day
@@ -127,7 +122,7 @@ func runPurgeRoutine() {
 }
 
 // getCase uses country name to issue a request, map the response into the required struct and return its reference
-func getCase(res *http.Response) (*model.Case, error) {
+func getCase(res *http.Response) (*model.Case, error, int) {
 	// TmpCase Used to unwrap nested structure
 	var tmpCase struct {
 		Data struct {
@@ -146,11 +141,11 @@ func getCase(res *http.Response) (*model.Case, error) {
 
 	err := customjson.Decode(res, &tmpCase)
 	if err != nil {
-		return nil, errors.New("error during decoding")
+		return &model.Case{}, errors.New("error during decoding"), http.StatusInternalServerError
 	}
 
 	if len(tmpCase.Data.Country.Name) == 0 {
-		return nil, nil
+		return &model.Case{}, errors.New("could not find a country with that name"), http.StatusNotFound
 	}
 
 	info := tmpCase.Data.Country.MostRecent
@@ -163,5 +158,5 @@ func getCase(res *http.Response) (*model.Case, error) {
 		GrowthRate:     info.GrowthRate,
 	}
 
-	return &c, nil
+	return &c, nil, 0
 }
