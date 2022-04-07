@@ -4,11 +4,11 @@ import (
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/api"
 	"corona-information-service/pkg/cache"
+	"corona-information-service/pkg/customhttp"
+	"corona-information-service/pkg/customjson"
+	"corona-information-service/pkg/webhook"
 	"corona-information-service/tools"
-	"corona-information-service/tools/customhttp"
-	"corona-information-service/tools/customjson"
 	"corona-information-service/tools/graphql"
-	"corona-information-service/tools/webhook"
 	"errors"
 	"fmt"
 	"net/http"
@@ -23,50 +23,64 @@ var cases = cache.New()
 var t = false
 
 // CaseHandler */
-func CaseHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
-		return
-	}
+func CaseHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
+			return
+		}
 
-	if !t {
-		runPurgeRoutine()
-	}
+		if !t {
+			runPurgeRoutine()
+		}
 
-	country, err := getCountry(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		country, err := getCountry(r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	if c := cache.Get(cases, country); c != nil {
+		if c := cache.Get(cases, country); c != nil {
+			//Failed webhook routine doesn't need error handling
+			go func() {
+				_ = webhook.RunWebhookRoutine(country)
+			}()
+			customjson.Encode(w, c)
+			return
+		}
+
+		query, err := graphql.ConvertToGraphql(model.QUERY, country)
+		if err != nil {
+			http.Error(w, "error during marshalling", http.StatusInternalServerError)
+			return
+		}
+
+		res, err := customhttp.IssueRequest(client, http.MethodPost, model.CASES_URL, query)
+		if err != nil {
+			http.Error(w, "error issuing a request", http.StatusInternalServerError)
+			return
+		}
+
+		c, err := getCase(res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if c == nil {
+			http.Error(w, "could not find a country with that name", http.StatusNotFound)
+			return
+		}
+
 		//Failed webhook routine doesn't need error handling
 		go func() {
-			_ = webhook.RunWebhookRoutine(country)
+			_ = webhook.RunWebhookRoutine(c.Country)
 		}()
+
+		cache.Put(cases, c.Country, c)
+
 		customjson.Encode(w, c)
-		return
 	}
-
-	c, err := getCase(model.CASES_URL, country)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if c == nil {
-		http.Error(w, "could not find a country with that name", http.StatusNotFound)
-		return
-	}
-
-	//Failed webhook routine doesn't need error handling
-	go func() {
-		_ = webhook.RunWebhookRoutine(c.Country)
-	}()
-
-	cache.Put(cases, c.Country, c)
-
-	customjson.Encode(w, c)
 }
 
 // getCountry handles search, converts alpha3 to country name if necessary and returns country name
@@ -113,17 +127,7 @@ func runPurgeRoutine() {
 }
 
 // getCase uses country name to issue a request, map the response into the required struct and return its reference
-func getCase(url, country string) (*model.Case, error) {
-	query, err := graphql.ConvertToGraphql(model.QUERY, country)
-	if err != nil {
-		return nil, errors.New("error during marshalling")
-	}
-
-	res, err := customhttp.IssueRequest(http.MethodPost, url, query)
-	if err != nil {
-		return nil, errors.New("error issuing the request")
-	}
-
+func getCase(res *http.Response) (*model.Case, error) {
 	// TmpCase Used to unwrap nested structure
 	var tmpCase struct {
 		Data struct {
@@ -140,7 +144,7 @@ func getCase(url, country string) (*model.Case, error) {
 		} `json:"data"`
 	}
 
-	err = customjson.Decode(res, &tmpCase)
+	err := customjson.Decode(res, &tmpCase)
 	if err != nil {
 		return nil, errors.New("error during decoding")
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 // IssueRequest */
-func IssueRequest(method string, url string, body []byte) (*http.Response, error) {
+func IssueRequest(client HTTPClient, method string, url string, body []byte) (*http.Response, error) {
 	// Create new request
 	r, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
@@ -14,9 +14,6 @@ func IssueRequest(method string, url string, body []byte) (*http.Response, error
 	}
 	// Setting content type -> effect depends on the service provider
 	r.Header.Add("content-type", "application/json")
-
-	// Instantiate the client
-	client := &http.Client{}
 
 	// Issue request
 	res, err := client.Do(r)

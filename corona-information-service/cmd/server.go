@@ -5,8 +5,9 @@ import (
 	"corona-information-service/internal/handler/case"
 	"corona-information-service/internal/handler/policy"
 	"corona-information-service/internal/model"
+	"corona-information-service/pkg/customhttp"
 	"corona-information-service/pkg/db"
-	"corona-information-service/tools/webhook"
+	"corona-information-service/pkg/webhook"
 	"log"
 	"net/http"
 	"os"
@@ -31,9 +32,9 @@ func main() {
 
 	// Set up handler endpoints
 	http.HandleFunc(model.DEFAULT_PATH, handler.DefaultHandler)
-	http.HandleFunc(model.CASE_PATH, _case.CaseHandler)
-	http.HandleFunc(model.POLICY_PATH, _policy.PolicyHandler)
-	http.HandleFunc(model.STATUS_PATH, handler.StatusHandler)
+	http.HandleFunc(model.CASE_PATH, _case.CaseHandler(customhttp.Client))
+	http.HandleFunc(model.POLICY_PATH, _policy.PolicyHandler(customhttp.Client))
+	http.HandleFunc(model.STATUS_PATH, handler.StatusHandler(customhttp.Client))
 
 	// Start server
 	log.Println("Starting server on port " + port + " ...")

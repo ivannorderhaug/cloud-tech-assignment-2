@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/api"
+	"corona-information-service/pkg/customjson"
 	"corona-information-service/pkg/db"
-	"corona-information-service/tools/customjson"
 	"corona-information-service/tools/hash"
 	"encoding/json"
 	"fmt"
@@ -116,6 +116,7 @@ func RunWebhookRoutine(country string) error {
 		if webhook.Country == country {
 
 			webhook.ActualCalls = webhook.ActualCalls + 1
+
 			//Updates webhook in memory
 			webhooks[i].ActualCalls = webhook.ActualCalls
 

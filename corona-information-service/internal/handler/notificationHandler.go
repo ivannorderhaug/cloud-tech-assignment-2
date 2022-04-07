@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"corona-information-service/tools/customjson"
-	"corona-information-service/tools/webhook"
+	"corona-information-service/pkg/customjson"
+	"corona-information-service/pkg/webhook"
 	"net/http"
 	"strings"
 )

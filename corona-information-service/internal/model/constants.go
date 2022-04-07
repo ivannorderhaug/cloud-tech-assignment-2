@@ -11,8 +11,8 @@ const VERSION = "v1"
 
 // URLS TO INVOKE
 
-const CASES_URL = "https://covid19-graphql.vercel.app/"
-const STRINGENCY_URL = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/"
+var CASES_URL = "https://covid19-graphql.vercel.app/"
+var STRINGENCY_URL = "https://covidtrackerapi.bsg.ox.ac.uk/api/v2/stringency/actions/"
 
 // GRAPHQL
 

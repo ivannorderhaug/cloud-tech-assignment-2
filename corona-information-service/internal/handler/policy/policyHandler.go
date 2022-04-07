@@ -4,10 +4,10 @@ import (
 	"corona-information-service/internal/model"
 	"corona-information-service/pkg/api"
 	"corona-information-service/pkg/cache"
+	"corona-information-service/pkg/customhttp"
+	"corona-information-service/pkg/customjson"
+	"corona-information-service/pkg/webhook"
 	"corona-information-service/tools"
-	"corona-information-service/tools/customhttp"
-	"corona-information-service/tools/customjson"
-	"corona-information-service/tools/webhook"
 	"errors"
 	"fmt"
 	"net/http"
@@ -18,78 +18,70 @@ import (
 var policies = cache.NewNestedMap()
 
 // PolicyHandler */
-func PolicyHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
-		return
-	}
-
-	//Validates search
-	cc, err, status := getCountryCode(r)
-	if err != nil {
-		http.Error(w, err.Error(), status)
-		return
-	}
-
-	//Gets date
-	date, yes := hasScope(r)
-	if yes {
-		//Validates if date input is correctly formatted.
-		if !tools.IsValidDate(date) {
-			http.Error(w, "Date parameter is wrongly formatted, please see if it matches the correct format. (YYYY-MM-dd)", http.StatusBadRequest)
+func PolicyHandler(client customhttp.HTTPClient) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not supported. Currently only GET supported.", http.StatusNotImplemented)
 			return
 		}
-	}
 
-	//Checks if policy with given date and alpha3 exists in cache, If it exists, it gets encoded
-	if p := cache.GetNestedMap(policies, cc, date); p != nil {
+		//Validates search
+		cc, err, status := getCountryCode(r)
+		if err != nil {
+			http.Error(w, err.Error(), status)
+			return
+		}
+
+		//Gets date
+		date, yes := hasScope(r)
+		if yes {
+			//Validates if date input is correctly formatted.
+			if !tools.IsValidDate(date) {
+				http.Error(w, "Date parameter is wrongly formatted, please see if it matches the correct format. (YYYY-MM-dd)", http.StatusBadRequest)
+				return
+			}
+		}
+
+		//Checks if policy with given date and alpha3 exists in cache, If it exists, it gets encoded
+		if p := cache.GetNestedMap(policies, cc, date); p != nil {
+			runWebhookRoutine(cc)
+			customjson.Encode(w, p)
+			return
+		}
+
+		//URL TO INVOKE
+		url := fmt.Sprintf("%s%s/%s", model.STRINGENCY_URL, cc, date)
+		//Issues request, gets response
+		res, err := customhttp.IssueRequest(client, http.MethodGet, url, nil) //returns response
+		if err != nil {
+			http.Error(w, "Error while issuing a request", http.StatusInternalServerError)
+			return
+		}
+
+		//Map data received from external api into a struct
+		policy, err := mapDataToStruct(res)
+		if err != nil {
+			http.Error(w, "error decoding response", http.StatusInternalServerError)
+			return
+		}
+
+		//Add missing data
+		policy.CountryCode = cc
+		policy.Scope = date
+
+		//Adds search to cache
+		cache.PutNestedMap(policies, cc, date, policy)
+
+		//Failed webhook routine doesn't need error handling
 		runWebhookRoutine(cc)
-		customjson.Encode(w, p)
-		return
+
+		//Encodes struct
+		customjson.Encode(w, policy)
 	}
-
-	//Issues request, decodes it and returns a struct
-	res, err := issueRequest(cc, date)
-	if err != nil {
-		http.Error(w, "Error while issuing a request", http.StatusInternalServerError)
-		return
-	}
-
-	//Map data received from external api into a struct
-	policy, err := mapDataToStruct(res)
-	if err != nil {
-		http.Error(w, "error decoding response", http.StatusInternalServerError)
-		return
-	}
-
-	//Add missing data
-	policy.CountryCode = cc
-	policy.Scope = date
-
-	//Adds search to cache
-	cache.PutNestedMap(policies, cc, date, policy)
-
-	//Failed webhook routine doesn't need error handling
-	runWebhookRoutine(cc)
-
-	//Encodes struct
-	customjson.Encode(w, policy)
-}
-
-// issueRequest Issues request to external API, decodes response into a struct, maps it correctly and returns it
-func issueRequest(alpha3 string, date string) (*http.Response, error) {
-	url := fmt.Sprintf("%s%s/%s", model.STRINGENCY_URL, alpha3, date)
-
-	//Issues request, gets response
-	res, err := customhttp.IssueRequest(http.MethodGet, url, nil) //returns response
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
 }
 
 //mapDataToStruct maps the received data into the struct
-func mapDataToStruct(res *http.Response) (model.Policy, error) {
+func mapDataToStruct(res *http.Response) (*model.Policy, error) {
 	// Used to unwrap nested structure
 	var data struct {
 		StringencyData struct {
@@ -101,7 +93,7 @@ func mapDataToStruct(res *http.Response) (model.Policy, error) {
 
 	err := customjson.Decode(res, &data)
 	if err != nil {
-		return model.Policy{}, err
+		return &model.Policy{}, err
 	} //returns decoded wrapper for stringency and policy data
 
 	stringency := data.StringencyData.Stringency
@@ -122,7 +114,7 @@ func mapDataToStruct(res *http.Response) (model.Policy, error) {
 		p = len(data.PolicyActions)
 	}
 
-	return model.Policy{
+	return &model.Policy{
 		Stringency: stringency,
 		Policies:   p,
 	}, nil
