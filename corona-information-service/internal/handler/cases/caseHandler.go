@@ -139,7 +139,7 @@ func runPurgeRoutine() {
 		for {
 			select {
 			case <-ticker.C:
-				cache.PurgeByDate(cases, fmt.Sprintf(time.Now().Format("2006-01-02")))
+				cache.PurgeByDate(cases, fmt.Sprintf(time.Now().AddDate(0, 0, -1).Format("2006-01-02")))
 			}
 		}
 	}()
