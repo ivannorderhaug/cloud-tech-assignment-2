@@ -34,7 +34,7 @@ WORKDIR /
 
 # Retrieve binary from builder container
 COPY --from=builder /go/src/app/cmd/server .
-COPY ./service-account.json .
+COPY ./corona-information-service/service-account.json .
 
 # Setting time zone data
 ENV ZONEINFO /zoneinfo.zip
