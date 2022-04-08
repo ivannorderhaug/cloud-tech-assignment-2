@@ -1,8 +1,8 @@
 package cache
 
 import (
+	"corona-information-service/internal/model"
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -52,12 +52,10 @@ func PutNestedMap(cache map[string]map[string]interface{}, key1 string, key2 str
 // PurgeByDate deletes every key-value pair in a map where the dates are not equal
 func PurgeByDate(cache map[string]interface{}, date string) {
 	for k, v := range cache {
-		rv := reflect.ValueOf(v)
-		p := rv.FieldByName("Scope")
-		date2 := fmt.Sprint(p)
+		c := v.(*model.Case)
+		date2 := fmt.Sprint(c.Date)
 		if !strings.EqualFold(date, date2) {
 			delete(cache, k)
 		}
 	}
-
 }
