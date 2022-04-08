@@ -63,7 +63,7 @@ git clone https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022-workspace/iv
 
 [DOWNLOAD](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022-workspace/ivann/assignment-2-server/-/archive/main/assignment-2-server-main.zip)
 
-#### After installation/cloning: ```simply run ./cmd/server.go ```
+#### After installation/cloning: ```simply run ../../cmd/server.go ```
 
 #### NOTE: By deploying the service locally, you lose access to the notification endpoint and the webhooks. To get access to them, please register [here](https://firebase.google.com/). Create a service account and put the .json file in the project folder --> (./corona-information-service) 
 
