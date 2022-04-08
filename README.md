@@ -5,6 +5,52 @@
 *  Active policies: in issue [#41](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022/-/issues/41) it is stated that: 
 `The response is the simple variant - the number of active policies returned, nothing else.` I interpret this as all the policies that gets returned, count as active. Even though some of them have "no measures" as value in the `policy_value_display_field`
 
+## Overview
+
+### Project structure
+```
+.
+└── corona-information-service/
+    ├── cmd/
+    │   └── server.go
+    └── internal/
+        ├── handler/
+        │   ├── cases/
+        │   │   ├── caseHandler.go
+        │   │   └── caseHandler_test.go
+        │   ├── policy/
+        │   │   ├── policyHandler.go
+        │   │   └── policyHandler_test.go
+        │   ├── deafult.go
+        │   ├── notificationHandler.go
+        │   └── status.go
+        ├── model/
+        │   ├── constants.go
+        │   └── structs.go
+        ├── pkg/
+        │   ├── api/
+        │   │   ├── restcountries.go
+        │   │   └── restcountries_test.go
+        │   ├── cache/
+        │   │   └── cache.go
+        │   ├── customhttp/
+        │   │   ├── HTTPClient.go
+        │   │   └── request.go
+        │   ├── customjson/
+        │   │   └── json.go
+        │   ├── db/
+        │   │   └── firestore.go
+        │   └── webhook/
+        │       └── webhooks.go
+        ├── tools/
+        │   ├── graphql/
+        │   │   └── graphql.go
+        │   ├── hash/
+        │   │   └── hash.go
+        │   └── utilities
+        └── go.mod/
+            └── go.sum
+```
 
 ## Deployment
 
