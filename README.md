@@ -1,5 +1,8 @@
 # ASSIGNMENT 2 - CORONA INFORMATION SERVICE
 
+
+## Improved API can be found here: https://github.com/ivannorderhaug/cloud-tech-assignment-3
+
 ## Assumptions
 
 *  Active policies: in issue [#41](https://git.gvk.idi.ntnu.no/course/prog2005/prog2005-2022/-/issues/41) it is stated that: 
