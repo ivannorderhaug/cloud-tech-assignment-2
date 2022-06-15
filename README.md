@@ -1,7 +1,7 @@
 # ASSIGNMENT 2 - CORONA INFORMATION SERVICE
 
 
-## Improved API can be found here: https://github.com/ivannorderhaug/cloud-tech-assignment-3
+### Improved API can be found here: https://github.com/ivannorderhaug/cloud-tech-assignment-3
 
 ## Assumptions
 
